@@ -1,0 +1,13 @@
+{
+ "schema_version": 3,
+ "database": "indian_food.db",
+ "database_bytes": 2777088,
+ "database_sha256": "eb39a76941ba83a2e92d32d42403dbd7264ed21438e0dc3ac438786ab442e211",
+ "generated_at": "2026-08-21T04:45:37+00:00",
+ "release_date": "2026-08-21",
+ "food_count": 1830,
+ "recipe_count": 331,
+ "packaged_count": 0,
+ "image_count": 10,
+ "min_app_version": "1.0.0"
+}

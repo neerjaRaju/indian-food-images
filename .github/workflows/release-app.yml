@@ -1,0 +1,125 @@
+name: Release app
+
+# Tag a version (v1.2.3) to cut a Play-ready build. The workflow always pulls
+# the newest published database so a shipped APK is never built against stale
+# nutrition data.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      build_aab:
+        description: "Also build an Android App Bundle for Play"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Fetch the latest published database
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p app/assets/db
+          if gh release download --pattern 'indian_food.db.gz' --dir app/assets/db 2>/dev/null; then
+            gh release download --pattern 'metadata.json' --dir app/assets/db --clobber || true
+            echo "Bundled the latest released database."
+          else
+            echo "::warning::No published database release found; building one."
+            python -m pip install -r builder/requirements.txt
+            (cd builder && python -m ifca build --offline --skip-images && python -m ifca bundle)
+          fi
+          ls -la app/assets/db
+
+      - name: Decode signing keystore
+        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > app/android/app/upload-keystore.jks
+          cat > app/android/key.properties <<EOF
+          storePassword=$STORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=upload-keystore.jks
+          EOF
+
+      - working-directory: app
+        run: flutter pub get
+
+      - name: Build split APKs
+        working-directory: app
+        env:
+          ADMOB_BANNER: ${{ secrets.ADMOB_BANNER }}
+          ADMOB_INTERSTITIAL: ${{ secrets.ADMOB_INTERSTITIAL }}
+          ADMOB_REWARDED: ${{ secrets.ADMOB_REWARDED }}
+          ADMOB_NATIVE: ${{ secrets.ADMOB_NATIVE }}
+        run: |
+          flutter build apk --release --split-per-abi \
+            --dart-define=ADMOB_BANNER="$ADMOB_BANNER" \
+            --dart-define=ADMOB_INTERSTITIAL="$ADMOB_INTERSTITIAL" \
+            --dart-define=ADMOB_REWARDED="$ADMOB_REWARDED" \
+            --dart-define=ADMOB_NATIVE="$ADMOB_NATIVE"
+
+      - name: Build App Bundle
+        if: ${{ inputs.build_aab != false }}
+        working-directory: app
+        env:
+          ADMOB_BANNER: ${{ secrets.ADMOB_BANNER }}
+          ADMOB_INTERSTITIAL: ${{ secrets.ADMOB_INTERSTITIAL }}
+          ADMOB_REWARDED: ${{ secrets.ADMOB_REWARDED }}
+        run: |
+          flutter build appbundle --release \
+            --dart-define=ADMOB_BANNER="$ADMOB_BANNER" \
+            --dart-define=ADMOB_INTERSTITIAL="$ADMOB_INTERSTITIAL" \
+            --dart-define=ADMOB_REWARDED="$ADMOB_REWARDED"
+
+      - name: Size report
+        working-directory: app
+        run: |
+          {
+            echo "## Artifact sizes"
+            echo ""
+            for f in build/app/outputs/flutter-apk/*-release.apk build/app/outputs/bundle/release/*.aab; do
+              [ -f "$f" ] || continue
+              echo "- \`$(basename "$f")\` — $(( $(stat -c%s "$f") / 1024 / 1024 )) MB"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attach artifacts to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" --generate-notes || true
+          gh release upload "${GITHUB_REF_NAME}" --clobber \
+            app/build/app/outputs/flutter-apk/*-release.apk \
+            app/build/app/outputs/bundle/release/*.aab || true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-release
+          path: |
+            app/build/app/outputs/flutter-apk/*-release.apk
+            app/build/app/outputs/bundle/release/*.aab
+          retention-days: 30

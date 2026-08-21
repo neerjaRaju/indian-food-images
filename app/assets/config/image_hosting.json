@@ -1,0 +1,61 @@
+{
+  "_comment": "Single switch for image delivery. Change `active` to move every image URL in the app to a different host without rebuilding the database. `pattern` is applied to URLs already stored in SQLite: the {folder} and {slug} captured from the stored URL are re-templated onto the chosen provider.",
+  "active": "jsdelivr",
+  "renditions": {
+    "thumbnail": "thumbnails",
+    "medium": "medium",
+    "large": "large"
+  },
+  "providers": {
+    "jsdelivr": {
+      "template": "https://cdn.jsdelivr.net/gh/{owner}/{repo}@{ref}/images/foods/{folder}/{slug}.webp",
+      "owner": "CHANGE_ME",
+      "repo": "indian-food-images",
+      "ref": "latest"
+    },
+    "github_releases": {
+      "template": "https://github.com/{owner}/{repo}/releases/download/{tag}/{folder}_{slug}.webp",
+      "owner": "CHANGE_ME",
+      "repo": "indian-food-images",
+      "tag": "images-latest"
+    },
+    "github_pages": {
+      "template": "https://{owner}.github.io/{repo}/images/foods/{folder}/{slug}.webp",
+      "owner": "CHANGE_ME",
+      "repo": "indian-food-images"
+    },
+    "cloudflare_r2": {
+      "template": "https://{account}.r2.dev/images/foods/{folder}/{slug}.webp",
+      "account": "CHANGE_ME"
+    },
+    "cloudflare_cdn": {
+      "template": "https://{domain}/images/foods/{folder}/{slug}.webp",
+      "domain": "cdn.example.com"
+    },
+    "netlify": {
+      "template": "https://{site}.netlify.app/images/foods/{folder}/{slug}.webp",
+      "site": "CHANGE_ME"
+    },
+    "vercel": {
+      "template": "https://{site}.vercel.app/images/foods/{folder}/{slug}.webp",
+      "site": "CHANGE_ME"
+    },
+    "firebase": {
+      "template": "https://{project}.web.app/images/foods/{folder}/{slug}.webp",
+      "project": "CHANGE_ME"
+    },
+    "custom_https": {
+      "template": "https://{host}/{basePath}/{folder}/{slug}.webp",
+      "host": "example.com",
+      "basePath": "images/foods"
+    }
+  },
+  "fallbackOrder": ["jsdelivr", "github_pages", "github_releases"],
+  "updateFeed": {
+    "owner": "CHANGE_ME",
+    "repo": "indian-food-app",
+    "releasesApi": "https://api.github.com/repos/{owner}/{repo}/releases/latest",
+    "assetName": "indian_food.db.gz",
+    "metadataAsset": "metadata.json"
+  }
+}

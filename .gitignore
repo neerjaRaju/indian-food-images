@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Builder outputs
+builder/build/
+
+# Flutter
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/build/
+app/.packages
+
+# Generated database asset (built by the pipeline, published as a release)
+app/assets/db/*.db
+app/assets/db/*.db.gz
+
+# Signing
+app/android/key.properties
+app/android/app/*.jks
+app/android/app/*.keystore
+
+# OS
+.DS_Store

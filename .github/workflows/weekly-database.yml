@@ -1,0 +1,203 @@
+name: Weekly database & image refresh
+
+# Runs every Sunday at 02:00 UTC (07:30 IST). Also runnable by hand from the
+# Actions tab, with knobs for a dry run.
+on:
+  schedule:
+    - cron: "0 2 * * 0"
+  workflow_dispatch:
+    inputs:
+      skip_images:
+        description: "Skip the image pipeline (data-only rebuild)"
+        type: boolean
+        default: false
+      image_limit:
+        description: "Max foods to crawl images for (blank = all)"
+        type: string
+        default: ""
+      dry_run:
+        description: "Build everything but do not publish a release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: database-build
+  cancel-in-progress: false
+
+env:
+  IFCA_IMAGE_OWNER: ${{ github.repository_owner }}
+  IFCA_IMAGE_REPO: ${{ vars.IMAGES_REPO || 'indian-food-images' }}
+  IFCA_HTTP_CONCURRENCY: "12"
+  FDC_API_KEY: ${{ secrets.FDC_API_KEY }}
+
+jobs:
+  build:
+    name: Build database
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    outputs:
+      release_date: ${{ steps.summary.outputs.release_date }}
+      food_count: ${{ steps.summary.outputs.food_count }}
+      image_count: ${{ steps.summary.outputs.image_count }}
+      db_bytes: ${{ steps.summary.outputs.db_bytes }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: builder/requirements.txt
+
+      - name: Install builder
+        working-directory: builder
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # The HTTP cache makes re-runs cheap: unchanged Wikimedia and OFF
+      # responses are not re-fetched, so a weekly run mostly downloads deltas.
+      - name: Restore crawl cache
+        uses: actions/cache@v4
+        with:
+          path: builder/build/cache
+          key: ifca-cache-${{ github.run_id }}
+          restore-keys: ifca-cache-
+
+      - name: Restore processed images
+        uses: actions/cache@v4
+        with:
+          path: builder/build/images
+          key: ifca-images-${{ github.run_id }}
+          restore-keys: ifca-images-
+
+      - name: Crawl nutrition sources
+        working-directory: builder
+        run: python -m ifca crawl --off-limit 6000
+
+      - name: Crawl, optimise and publish images
+        if: ${{ inputs.skip_images != true }}
+        working-directory: builder
+        env:
+          GITHUB_TOKEN: ${{ secrets.IMAGES_TOKEN || secrets.GITHUB_TOKEN }}
+        run: |
+          python -m ifca images \
+            ${{ inputs.image_limit && format('--image-limit {0}', inputs.image_limit) || '' }} \
+            ${{ inputs.dry_run == true && '--dry-run' || '--upload' }} \
+            --verify-urls
+
+      - name: Build database without images
+        if: ${{ inputs.skip_images == true }}
+        working-directory: builder
+        run: python -m ifca images --skip-images
+
+      - name: Build SQLite database
+        working-directory: builder
+        run: python -m ifca db
+
+      - name: Bundle asset for the app
+        working-directory: builder
+        run: python -m ifca bundle
+
+      - name: Report
+        id: summary
+        working-directory: builder
+        run: |
+          python -m ifca stats | tee stats.json
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, pathlib
+          meta = json.loads(pathlib.Path("build/dist/metadata.json").read_text())
+          print(f"release_date={meta['release_date']}")
+          print(f"food_count={meta['food_count']}")
+          print(f"image_count={meta['image_count']}")
+          print(f"db_bytes={meta['database_bytes']}")
+          PY
+
+      - name: Fail the build if the database looks wrong
+        working-directory: builder
+        run: |
+          python - <<'PY'
+          import json, pathlib, sys
+          meta = json.loads(pathlib.Path("build/dist/metadata.json").read_text())
+          size_mb = meta["database_bytes"] / 1e6
+          problems = []
+          if meta["food_count"] < 500:
+              problems.append(f"only {meta['food_count']} foods")
+          if size_mb > 150:
+              problems.append(f"database is {size_mb:.1f} MB (ceiling 150 MB)")
+          if problems:
+              sys.exit("Refusing to publish: " + "; ".join(problems))
+          print(f"OK: {meta['food_count']} foods, {size_mb:.1f} MB")
+          PY
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-${{ steps.summary.outputs.release_date }}
+          path: |
+            builder/build/dist/indian_food.db
+            builder/build/dist/image_manifest.json
+            builder/build/dist/metadata.json
+            builder/build/dist/RELEASE_NOTES.md
+            app/assets/db/indian_food.db.gz
+          retention-days: 30
+
+      - name: Publish release
+        if: ${{ inputs.dry_run != true }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="db-${{ steps.summary.outputs.release_date }}"
+          gh release create "$TAG" \
+            --title "Food database ${{ steps.summary.outputs.release_date }}" \
+            --notes-file builder/build/dist/RELEASE_NOTES.md \
+            --latest \
+            app/assets/db/indian_food.db.gz \
+            builder/build/dist/metadata.json \
+            builder/build/dist/image_manifest.json \
+          || gh release upload "$TAG" --clobber \
+            app/assets/db/indian_food.db.gz \
+            builder/build/dist/metadata.json \
+            builder/build/dist/image_manifest.json
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "## Weekly database build"
+            echo ""
+            echo "| Metric | Value |"
+            echo "| --- | --- |"
+            echo "| Foods | ${{ steps.summary.outputs.food_count }} |"
+            echo "| Images published | ${{ steps.summary.outputs.image_count }} |"
+            echo "| Database size | ${{ steps.summary.outputs.db_bytes }} bytes |"
+            echo "| Release date | ${{ steps.summary.outputs.release_date }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  verify:
+    name: Verify published image URLs
+    needs: build
+    if: ${{ inputs.dry_run != true && inputs.skip_images != true }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - working-directory: builder
+        run: pip install -r requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: database-${{ needs.build.outputs.release_date }}
+          path: builder/build/dist
+      - name: HEAD every published URL
+        working-directory: builder
+        # jsDelivr needs a few minutes to pick up a fresh release.
+        run: |
+          sleep 120
+          python -m ifca verify --strict

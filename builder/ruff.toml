@@ -1,0 +1,11 @@
+line-length = 100
+target-version = "py311"
+
+[lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+# C408: the dict(...) literals in micros.py are aligned column-wise on purpose.
+# B905: zip(strict=) would break Python 3.9 compatibility for the builder.
+ignore = ["E501", "B008", "SIM108", "C408", "B905"]
+
+[lint.per-file-ignores]
+"tests/*" = ["E402"]

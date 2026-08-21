@@ -1,0 +1,307 @@
+# Curated Indian food core table — values per 100 g edible portion.
+# Compiled against IFCT 2017 (NIN/ICMR) cooked-dish tables, NIN "Nutritive Value
+# of Indian Foods", and USDA FoodData Central analogues for shared ingredients.
+# Cooked mixed dishes vary by household; treat these as representative means.
+# columns: name|hindi|category|region|diet|kcal|protein|carbs|fat|satfat|fiber|sugar|sodium|class|unit|grams|tags
+#
+# ---------------------------------------------------------------- BREADS
+Roti|रोटी|North Indian|north|veg|297|11.0|59.0|1.7|0.4|10.0|0.8|180|grain|roti|40|staple,wheat,everyday
+Chapati|चपाती|North Indian|north|veg|297|11.0|59.0|1.7|0.4|10.0|0.8|180|grain|chapati|40|staple,wheat,everyday
+Phulka|फुल्का|North Indian|north|veg|290|10.8|58.5|1.4|0.3|10.2|0.7|150|grain|roti|30|staple,wheat,no-oil
+Tandoori Roti|तंदूरी रोटी|Punjabi|north|veg|310|10.2|60.5|3.2|0.9|8.6|1.2|320|grain|roti|60|restaurant,wheat
+Rumali Roti|रुमाली रोटी|North Indian|north|veg|305|9.4|61.0|2.8|0.7|4.2|1.4|340|grain|roti|55|restaurant,maida
+Naan|नान|Punjabi|north|veg|320|9.0|55.0|7.0|2.4|2.4|4.5|420|grain|piece|90|restaurant,maida
+Butter Naan|बटर नान|Punjabi|north|veg|360|8.8|53.0|12.5|6.2|2.3|4.4|450|grain|piece|95|restaurant,maida
+Garlic Naan|गार्लिक नान|Punjabi|north|veg|340|9.2|54.0|9.8|4.0|2.6|4.2|460|grain|piece|95|restaurant,maida
+Kulcha|कुलचा|Punjabi|north|veg|318|8.6|55.5|6.8|2.6|2.2|3.8|400|grain|piece|85|restaurant,maida
+Amritsari Kulcha|अमृतसरी कुलचा|Punjabi|north|veg|352|8.2|52.0|12.4|5.8|3.1|3.2|480|grain|piece|120|restaurant,stuffed
+Paratha|पराठा|North Indian|north|veg|360|8.2|50.0|14.0|5.0|6.0|1.2|300|grain|paratha|70|staple,wheat,ghee
+Aloo Paratha|आलू पराठा|Punjabi|north|veg|280|6.4|41.0|9.8|3.6|4.4|1.6|360|grain|paratha|120|stuffed,potato
+Gobi Paratha|गोभी पराठा|Punjabi|north|veg|262|7.0|36.5|9.6|3.4|5.2|2.1|350|grain|paratha|115|stuffed,cauliflower
+Paneer Paratha|पनीर पराठा|Punjabi|north|veg|312|11.8|34.0|14.2|6.8|3.8|1.8|340|grain|paratha|120|stuffed,paneer
+Mooli Paratha|मूली पराठा|Punjabi|north|veg|248|6.8|35.0|9.0|3.2|4.6|1.9|330|grain|paratha|115|stuffed,radish
+Methi Paratha|मेथी पराठा|Gujarati|west|veg|286|8.4|42.0|9.8|3.4|6.4|1.4|320|grain|paratha|75|fenugreek
+Lachha Paratha|लच्छा पराठा|Punjabi|north|veg|372|8.0|51.0|15.4|6.8|3.4|1.4|380|grain|paratha|80|restaurant,layered
+Malabar Parotta|പൊറോട്ട|South Indian|south|veg|368|7.6|52.0|14.8|7.2|2.2|2.0|420|grain|paratha|90|kerala,maida
+Puri|पूरी|North Indian|north|veg|420|7.8|48.0|22.0|8.0|4.2|1.1|240|fried|piece|25|fried,festival
+Bhatura|भटूरा|Punjabi|north|veg|398|8.4|49.0|19.2|7.4|2.4|3.0|420|fried|piece|80|fried,maida
+Luchi|লুচি|Bengali|east|veg|412|7.2|49.5|21.0|8.6|1.9|1.0|230|fried|piece|22|fried,maida
+Bhakri|भाकरी|Maharashtrian|west|veg|338|8.4|66.0|3.4|0.7|9.6|1.2|160|grain|piece|60|millet,jowar
+Jowar Roti|ज्वार रोटी|Maharashtrian|west|veg|330|8.6|68.0|2.6|0.5|9.8|1.0|140|grain|roti|50|millet,gluten-free
+Bajra Roti|बाजरा रोटी|Rajasthani|north|veg|348|10.6|61.5|5.6|1.2|11.2|1.4|150|grain|roti|55|millet,winter
+Ragi Roti|रागी रोटी|South Indian|south|veg|312|7.2|68.0|1.6|0.3|11.6|0.9|130|grain|roti|55|millet,calcium
+Makki Ki Roti|मक्की की रोटी|Punjabi|north|veg|330|8.0|66.0|4.2|0.9|8.4|1.2|170|grain|roti|65|winter,maize
+Thepla|થેપલા|Gujarati|west|veg|318|8.8|46.0|11.4|2.8|6.8|2.2|360|grain|piece|35|travel,fenugreek
+Appam|അപ്പം|South Indian|south|veg|165|3.0|33.0|2.2|1.4|1.2|3.6|170|grain|piece|60|kerala,fermented
+Idiyappam|ഇടിയപ്പം|South Indian|south|veg|168|3.2|36.0|0.6|0.2|1.4|0.3|120|grain|piece|60|kerala,rice
+Pathiri|പത്തിരി|South Indian|south|veg|180|3.4|38.0|1.2|0.4|1.6|0.4|140|grain|piece|50|kerala,rice
+# ---------------------------------------------------------------- RICE
+Steamed Rice|चावल|North Indian|pan|veg|130|2.7|28.0|0.3|0.1|0.4|0.1|2|grain|bowl|150|staple,everyday
+Brown Rice Cooked|ब्राउन चावल|Healthy Foods|pan|veg|123|2.6|25.6|1.0|0.2|1.8|0.3|4|grain|bowl|150|wholegrain
+Jeera Rice|जीरा चावल|North Indian|north|veg|168|3.0|29.0|4.6|2.2|0.8|0.2|280|grain|bowl|160|everyday
+Ghee Rice|நெய் சாதம்|South Indian|south|veg|196|3.2|29.5|7.2|4.4|0.9|0.6|300|grain|bowl|160|kerala,festival
+Lemon Rice|எலுமிச்சை சாதம்|South Indian|south|veg|172|3.4|28.0|5.2|1.1|1.4|0.5|340|grain|bowl|180|tiffin,tamil
+Curd Rice|தயிர் சாதம்|South Indian|south|veg|118|3.6|18.0|3.2|1.9|0.5|2.2|260|grain|bowl|200|tamil,cooling
+Tamarind Rice|புளியோதரை|South Indian|south|veg|186|3.6|30.0|5.8|1.2|2.0|3.2|420|grain|bowl|180|temple,tamil
+Tomato Rice|தக்காளி சாதம்|South Indian|south|veg|164|3.2|27.5|4.6|1.0|1.6|2.0|360|grain|bowl|180|tiffin
+Coconut Rice|தேங்காய் சாதம்|South Indian|south|veg|198|3.4|28.0|8.4|6.2|2.2|1.6|320|grain|bowl|170|tamil
+Bisi Bele Bath|ಬಿಸಿ ಬೇಳೆ ಬಾತ್|South Indian|south|veg|158|5.2|24.0|4.6|2.0|2.8|1.4|380|mixed|bowl|220|karnataka,onepot
+Pulao|पुलाव|North Indian|north|veg|172|3.6|28.0|5.2|2.4|1.6|1.4|320|mixed|bowl|180|festival
+Veg Biryani|वेज बिरयानी|North Indian|north|veg|186|4.2|29.0|6.0|2.8|1.8|1.6|400|mixed|plate|250|restaurant
+Chicken Biryani|चिकन बिरयानी|North Indian|north|nonveg|212|9.8|25.5|8.2|3.4|1.2|1.4|480|mixed|plate|300|restaurant,hyderabadi
+Mutton Biryani|मटन बिरयानी|North Indian|north|nonveg|238|10.4|24.0|11.4|4.8|1.1|1.3|500|mixed|plate|300|restaurant,hyderabadi
+Egg Biryani|अंडा बिरयानी|North Indian|north|egg|196|7.4|26.0|7.0|2.6|1.3|1.4|440|mixed|plate|280|restaurant
+Prawn Biryani|झींगा बिरयानी|Goan|west|nonveg|204|10.6|25.0|7.2|2.9|1.2|1.4|470|mixed|plate|280|coastal
+Khichdi|खिचड़ी|North Indian|pan|veg|122|4.4|19.5|2.6|1.2|1.8|0.6|260|mixed|bowl|220|comfort,easy-digest
+Dal Khichdi|दाल खिचड़ी|Maharashtrian|west|veg|134|5.0|20.5|3.4|1.6|2.2|0.8|300|mixed|bowl|220|comfort
+Pongal|பொங்கல்|South Indian|south|veg|148|4.6|22.0|4.8|2.6|1.6|0.5|300|mixed|bowl|200|tiffin,breakfast
+Vangi Bath|ವಾಂಗಿ ಬಾತ್|South Indian|south|veg|168|3.6|26.5|5.4|1.2|2.6|1.8|380|mixed|bowl|190|karnataka
+Kashmiri Pulao|कश्मीरी पुलाव|Kashmiri|north|veg|196|4.0|31.0|6.4|2.6|1.8|5.4|300|mixed|bowl|180|festival,dryfruit
+Fried Rice|फ्राइड राइस|Fast Food|pan|veg|168|3.4|27.0|5.0|1.0|1.4|1.2|420|mixed|bowl|200|indo-chinese
+# ---------------------------------------------------------------- DALS & LEGUMES
+Dal Tadka|दाल तड़का|North Indian|north|veg|118|5.6|13.0|4.8|2.0|3.2|1.0|320|legume|bowl|180|everyday
+Dal Fry|दाल फ्राई|North Indian|north|veg|126|5.4|13.5|5.6|2.4|3.0|1.2|340|legume|bowl|180|restaurant
+Dal Makhani|दाल मखनी|Punjabi|north|veg|168|6.2|14.0|9.4|5.6|4.4|1.6|360|legume|bowl|180|restaurant,creamy
+Yellow Moong Dal|मूंग दाल|North Indian|pan|veg|105|6.0|14.5|2.4|1.0|2.6|0.8|280|legume|bowl|180|light,everyday
+Toor Dal|तूर दाल|North Indian|pan|veg|112|5.8|14.0|3.2|1.4|3.0|0.9|300|legume|bowl|180|everyday
+Masoor Dal|मसूर दाल|North Indian|pan|veg|108|6.4|13.6|2.6|1.1|3.4|0.8|290|legume|bowl|180|everyday
+Chana Dal|चना दाल|North Indian|pan|veg|132|6.8|17.0|3.8|1.5|5.2|1.6|300|legume|bowl|180|everyday
+Urad Dal|उड़द दाल|North Indian|north|veg|138|7.2|16.0|4.6|2.0|4.0|0.9|310|legume|bowl|180|punjabi
+Panchmel Dal|पंचमेल दाल|Rajasthani|north|veg|142|7.0|17.5|4.8|1.8|5.0|1.2|330|legume|bowl|180|rajasthani
+Sambar|சாம்பார்|South Indian|south|veg|84|3.8|11.0|2.8|0.7|2.8|2.0|340|legume|bowl|180|everyday,tamil
+Rasam|ரசம்|South Indian|south|veg|42|1.4|6.2|1.2|0.3|1.0|1.6|360|soup|bowl|150|light,digestive
+Chole|छोले|Punjabi|north|veg|142|6.4|18.5|4.8|1.2|6.2|3.0|400|legume|bowl|180|festival
+Chana Masala|चना मसाला|Punjabi|north|veg|138|6.2|18.0|4.6|1.1|6.0|2.8|390|legume|bowl|180|everyday
+Rajma|राजमा|Punjabi|north|veg|128|6.6|17.0|3.8|1.0|6.4|1.8|380|legume|bowl|180|comfort
+Kadhi|कढ़ी|Gujarati|west|veg|96|3.4|8.6|5.2|2.4|0.8|3.4|340|dairy|bowl|180|everyday
+Punjabi Kadhi Pakora|कढ़ी पकौड़ा|Punjabi|north|veg|134|4.6|11.0|8.2|3.0|1.6|2.6|380|dairy|bowl|200|comfort
+Gujarati Dal|ગુજરાતી દાળ|Gujarati|west|veg|104|4.6|15.0|2.8|0.9|2.6|4.6|320|legume|bowl|180|sweet-sour
+Sprouts Usal|उसळ|Maharashtrian|west|veg|118|7.2|16.0|2.4|0.6|5.4|2.2|300|legume|bowl|150|healthy
+Misal|मिसळ|Maharashtrian|west|veg|156|6.8|18.0|6.4|1.8|5.0|2.4|460|legume|plate|250|street,spicy
+Dhokli Dal|દાળ ઢોકળી|Gujarati|west|veg|142|5.4|21.0|4.0|1.2|3.0|3.4|330|mixed|bowl|200|onepot
+Sambar Vada Combo|சாம்பார் வடை|South Indian|south|veg|196|6.2|22.0|9.4|2.6|3.6|2.2|460|mixed|plate|180|tiffin
+# ---------------------------------------------------------------- VEG CURRIES
+Aloo Gobi|आलू गोभी|North Indian|north|veg|108|2.8|14.0|5.0|1.2|3.4|2.4|320|vegetable|bowl|150|everyday
+Aloo Matar|आलू मटर|North Indian|north|veg|112|3.4|15.0|4.6|1.1|3.6|3.0|330|vegetable|bowl|150|everyday
+Aloo Jeera|आलू जीरा|North Indian|north|veg|124|2.4|18.0|5.2|1.2|2.4|1.2|300|vegetable|bowl|150|everyday
+Bhindi Masala|भिंडी मसाला|North Indian|north|veg|104|2.2|10.0|6.4|1.4|3.8|2.6|310|vegetable|bowl|150|everyday
+Baingan Bharta|बैंगन भर्ता|Punjabi|north|veg|92|2.0|9.4|5.4|1.2|3.4|4.0|330|vegetable|bowl|150|smoky
+Palak Paneer|पालक पनीर|Punjabi|north|veg|156|8.4|7.2|10.8|5.8|2.6|2.4|380|dairy|bowl|180|restaurant
+Paneer Butter Masala|पनीर बटर मसाला|Punjabi|north|veg|228|8.8|10.5|17.2|9.6|1.8|5.4|430|dairy|bowl|180|restaurant,creamy
+Shahi Paneer|शाही पनीर|Punjabi|north|veg|236|8.6|11.0|18.0|9.8|1.6|6.0|420|dairy|bowl|180|restaurant,creamy
+Kadai Paneer|कड़ाही पनीर|Punjabi|north|veg|186|9.0|8.8|13.2|7.0|2.4|3.6|400|dairy|bowl|180|restaurant
+Matar Paneer|मटर पनीर|Punjabi|north|veg|172|8.6|10.5|10.8|5.8|2.8|3.8|390|dairy|bowl|180|everyday
+Malai Kofta|मलाई कोफ्ता|Punjabi|north|veg|244|6.8|15.0|17.8|9.0|2.0|5.6|440|dairy|bowl|180|restaurant,rich
+Navratan Korma|नवरतन कोरमा|North Indian|north|veg|198|5.4|16.0|13.0|6.4|2.6|6.8|400|mixed|bowl|180|festival,rich
+Veg Kolhapuri|व्हेज कोल्हापुरी|Maharashtrian|west|veg|148|4.0|13.0|9.2|3.2|3.6|3.0|430|vegetable|bowl|180|spicy
+Mixed Veg Curry|मिक्स वेज|North Indian|pan|veg|112|3.2|12.5|5.6|1.6|3.4|3.2|340|vegetable|bowl|170|everyday
+Dum Aloo|दम आलू|Kashmiri|north|veg|156|2.8|18.0|8.4|3.2|2.6|3.0|360|vegetable|bowl|170|kashmiri
+Kashmiri Rogan Josh|रोगन जोश|Kashmiri|north|nonveg|198|16.5|4.2|13.0|5.4|1.0|1.8|420|meat|bowl|180|kashmiri,mutton
+Avial|അവിയൽ|South Indian|south|veg|124|2.6|9.6|8.4|6.4|3.2|3.0|300|vegetable|bowl|170|kerala,onam
+Thoran|തോരൻ|South Indian|south|veg|96|2.8|8.4|5.8|4.2|3.6|2.2|280|vegetable|bowl|120|kerala,dry
+Olan|ഓലൻ|South Indian|south|veg|92|1.8|7.0|6.6|5.2|2.0|2.6|260|vegetable|bowl|150|kerala,onam
+Kootu|கூட்டு|South Indian|south|veg|104|4.2|12.0|4.2|2.6|3.4|2.0|300|legume|bowl|160|tamil
+Poriyal|பொரியல்|South Indian|south|veg|94|2.6|9.0|5.4|3.6|3.4|2.4|290|vegetable|bowl|120|tamil,dry
+Undhiyu|ઊંધિયું|Gujarati|west|veg|168|4.8|16.0|9.8|2.4|5.4|4.2|380|vegetable|bowl|180|winter,festival
+Sev Tameta|સેવ ટમેટા|Gujarati|west|veg|168|4.6|16.0|9.6|2.2|2.6|4.6|420|vegetable|bowl|150|gujarati
+Gatte Ki Sabzi|गट्टे की सब्जी|Rajasthani|north|veg|186|7.4|18.0|9.6|3.4|3.6|2.4|420|legume|bowl|170|rajasthani
+Ker Sangri|केर सांगरी|Rajasthani|north|veg|172|5.0|16.0|10.4|3.0|7.2|3.0|460|vegetable|bowl|120|desert,rajasthani
+Shukto|শুক্তো|Bengali|east|veg|98|2.6|9.4|5.6|3.2|3.0|2.4|280|vegetable|bowl|170|bengali,bitter
+Aloo Posto|আলু পোস্ত|Bengali|east|veg|156|4.2|17.0|8.0|1.6|3.0|1.8|300|vegetable|bowl|150|bengali
+Chhanar Dalna|ছানার ডালনা|Bengali|east|veg|172|8.8|9.0|11.4|5.6|1.6|2.6|360|dairy|bowl|170|bengali
+Dalma|ଡାଲମା|Odia|east|veg|104|4.8|13.5|3.4|1.4|3.6|2.2|280|legume|bowl|180|odia,temple
+Santula|ସନ୍ତୁଳା|Odia|east|veg|76|2.2|10.0|3.0|0.7|3.0|3.0|240|vegetable|bowl|160|odia,light
+Aloo Pitika|আলু পিটিকা|Assamese|east|veg|108|2.2|17.0|3.6|0.6|2.0|1.4|280|vegetable|bowl|120|assamese
+Khar|খাৰ|Assamese|east|veg|82|2.6|9.0|4.0|1.0|2.8|1.8|300|vegetable|bowl|150|assamese
+Litti Chokha|लिट्टी चोखा|Bihari|east|veg|246|8.2|36.0|8.4|3.0|6.0|2.6|380|mixed|piece|60|bihari,street
+Goan Vegetable Caldin|काल्दीन|Goan|west|veg|118|2.6|9.0|8.2|6.0|2.6|2.8|320|vegetable|bowl|170|goan,coconut
+# ---------------------------------------------------------------- NON-VEG
+Butter Chicken|बटर चिकन|Punjabi|north|nonveg|218|14.6|7.4|15.0|8.2|1.0|4.6|440|meat|bowl|180|restaurant,creamy
+Chicken Tikka Masala|चिकन टिक्का मसाला|Punjabi|north|nonveg|196|15.8|6.8|12.4|5.8|1.2|3.6|450|meat|bowl|180|restaurant
+Chicken Curry|चिकन करी|North Indian|pan|nonveg|168|16.0|4.6|9.6|3.2|1.0|1.8|400|meat|bowl|180|everyday
+Chicken Chettinad|சிக்கன் செட்டிநாடு|South Indian|south|nonveg|186|17.2|5.4|10.8|5.0|1.8|1.6|430|meat|bowl|180|tamil,spicy
+Chicken 65|चिकन 65|South Indian|south|nonveg|248|18.6|11.0|14.6|4.0|0.8|1.4|560|meat|plate|150|starter,fried
+Tandoori Chicken|तंदूरी चिकन|Punjabi|north|nonveg|168|24.5|2.4|6.8|2.2|0.4|1.6|460|meat|piece|150|grilled,protein
+Chicken Tikka|चिकन टिक्का|Punjabi|north|nonveg|182|25.0|3.0|7.8|2.6|0.5|1.8|470|meat|piece|120|grilled,protein
+Chicken Korma|चिकन कोरमा|North Indian|north|nonveg|214|15.2|7.0|14.4|6.6|1.2|3.4|420|meat|bowl|180|rich
+Chicken Kolhapuri|चिकन कोल्हापुरी|Maharashtrian|west|nonveg|192|16.4|6.0|11.6|4.4|2.0|2.0|450|meat|bowl|180|spicy
+Chicken Ghee Roast|ಕೋಳಿ ಘೀ ರೋಸ್ಟ್|South Indian|south|nonveg|252|18.0|6.4|17.2|8.6|1.6|2.4|480|meat|plate|150|mangalore
+Mutton Curry|मटन करी|North Indian|pan|nonveg|212|16.8|4.0|14.4|5.8|0.9|1.6|420|meat|bowl|180|everyday
+Mutton Rogan Josh|मटन रोगन जोश|Kashmiri|north|nonveg|206|16.6|4.4|13.6|5.6|1.0|1.8|430|meat|bowl|180|kashmiri
+Nihari|निहारी|North Indian|north|nonveg|228|17.4|6.0|14.8|6.4|0.8|1.2|520|meat|bowl|200|slow-cooked
+Keema Matar|कीमा मटर|Punjabi|north|nonveg|202|16.0|7.6|12.0|4.8|2.4|2.2|420|meat|bowl|170|everyday
+Fish Curry|मछली करी|Bengali|east|nonveg|132|14.8|4.4|6.2|2.2|1.0|1.8|380|seafood|bowl|180|coastal
+Goan Fish Curry|गोवा फिश करी|Goan|west|nonveg|146|14.2|5.0|7.8|4.6|1.4|2.4|420|seafood|bowl|180|goan,coconut
+Meen Moilee|മീൻ മോളി|South Indian|south|nonveg|152|14.0|4.6|8.8|6.0|1.0|2.2|400|seafood|bowl|180|kerala
+Macher Jhol|মাছের ঝোল|Bengali|east|nonveg|118|14.0|3.6|5.2|1.6|0.8|1.4|360|seafood|bowl|180|bengali,everyday
+Fish Fry|फिश फ्राई|Goan|west|nonveg|224|20.0|8.4|12.6|3.2|0.6|0.8|480|seafood|piece|120|fried,coastal
+Prawn Masala|झींगा मसाला|Goan|west|nonveg|148|16.2|5.0|7.0|2.8|1.2|2.0|440|seafood|bowl|170|coastal
+Egg Curry|अंडा करी|North Indian|pan|egg|148|9.4|5.6|10.0|3.4|1.2|2.4|380|egg|bowl|180|everyday
+Egg Bhurji|अंडा भुर्जी|North Indian|pan|egg|182|12.4|4.0|13.2|4.4|0.9|2.0|400|egg|bowl|120|street,protein
+Boiled Egg|उबला अंडा|Eggs|pan|egg|155|12.6|1.1|10.6|3.3|0.0|1.1|124|egg|piece|50|protein,everyday
+Omelette|ऑमलेट|Eggs|pan|egg|196|12.8|2.4|15.2|4.6|0.5|1.4|340|egg|piece|110|breakfast
+# ---------------------------------------------------------------- SOUTH TIFFIN
+Idli|इडली|South Indian|south|veg|132|4.6|26.0|0.8|0.2|1.4|0.4|180|grain|idli|40|breakfast,steamed
+Rava Idli|रवा इडली|South Indian|south|veg|156|4.4|27.0|3.6|1.6|1.8|0.8|300|grain|idli|50|breakfast
+Plain Dosa|डोसा|South Indian|south|veg|168|4.0|30.0|3.4|1.2|1.6|0.6|220|grain|dosa|80|breakfast
+Masala Dosa|मसाला डोसा|South Indian|south|veg|176|3.8|28.0|5.6|2.0|2.4|1.4|340|grain|dosa|180|breakfast,popular
+Rava Dosa|रवा डोसा|South Indian|south|veg|202|4.0|30.0|7.2|2.4|1.4|0.8|360|grain|dosa|100|crispy
+Set Dosa|सेट डोसा|South Indian|south|veg|158|4.2|29.0|2.8|1.0|1.6|0.8|240|grain|dosa|70|karnataka
+Neer Dosa|नीर डोसा|South Indian|south|veg|124|2.4|25.0|1.8|1.2|1.0|0.4|180|grain|dosa|60|mangalore
+Uttapam|उत्तपम|South Indian|south|veg|158|4.4|27.0|3.8|1.2|2.2|1.6|280|grain|piece|110|breakfast
+Medu Vada|मेदु वड़ा|South Indian|south|veg|282|8.4|26.0|16.4|4.6|3.6|1.0|380|fried|piece|45|fried,tiffin
+Upma|उपमा|South Indian|south|veg|142|3.4|22.0|4.4|1.6|1.8|1.2|320|grain|bowl|180|breakfast
+Rava Kesari|रवा केसरी|South Indian|south|veg|312|4.2|48.0|11.6|7.2|1.0|28.0|120|sweet|bowl|100|sweet,festival
+Poha|पोहा|Maharashtrian|west|veg|138|2.8|24.0|3.6|1.0|1.6|2.2|280|grain|bowl|170|breakfast
+Sabudana Khichdi|साबूदाणा खिचडी|Maharashtrian|west|veg|218|3.6|34.0|7.8|1.6|1.6|1.4|300|grain|bowl|180|fasting
+Dhokla|ઢોકળા|Gujarati|west|veg|156|5.6|22.0|4.8|1.0|2.6|4.2|340|legume|piece|40|steamed,snack
+Khaman|ખમણ|Gujarati|west|veg|168|6.0|22.5|5.6|1.2|2.8|5.4|360|legume|piece|40|steamed,snack
+Khandvi|ખાંડવી|Gujarati|west|veg|142|5.2|15.0|6.6|2.0|1.6|2.2|320|legume|piece|25|snack
+Handvo|હાંડવો|Gujarati|west|veg|186|6.4|24.0|7.2|1.8|3.4|2.6|340|mixed|piece|60|baked
+Muthiya|મુઠિયા|Gujarati|west|veg|172|6.0|25.0|5.4|1.4|4.0|2.4|320|mixed|piece|40|steamed
+Appam With Stew|അപ്പം സ്റ്റൂ|South Indian|south|veg|142|3.2|22.0|4.6|3.2|1.4|3.0|260|mixed|plate|220|kerala,breakfast
+Puttu|പുട്ട്|South Indian|south|veg|168|3.0|33.0|3.0|2.2|2.4|1.0|120|grain|bowl|150|kerala,breakfast
+Kadala Curry|കടല കറി|South Indian|south|veg|138|6.4|17.0|4.8|2.4|5.6|2.4|360|legume|bowl|170|kerala
+# ---------------------------------------------------------------- STREET FOOD
+Pani Puri|पानी पूरी|Fast Food|pan|veg|186|4.2|30.0|5.6|1.4|3.0|3.4|420|street|piece|18|street,popular
+Bhel Puri|भेल पूरी|Maharashtrian|west|veg|228|5.4|38.0|6.4|1.4|3.6|6.0|560|street|plate|100|street,mumbai
+Sev Puri|सेव पूरी|Maharashtrian|west|veg|286|6.0|36.0|13.0|3.0|3.4|5.6|600|street|plate|100|street,mumbai
+Dahi Puri|दही पूरी|Maharashtrian|west|veg|218|5.8|30.0|8.4|3.0|2.6|6.2|520|street|plate|110|street,mumbai
+Pav Bhaji|पाव भाजी|Maharashtrian|west|veg|168|4.0|22.0|7.4|3.6|3.2|3.6|480|street|plate|250|street,mumbai
+Vada Pav|वड़ा पाव|Maharashtrian|west|veg|286|6.8|40.0|11.0|3.2|3.0|3.2|560|street|piece|120|street,mumbai
+Misal Pav|मिसळ पाव|Maharashtrian|west|veg|176|6.4|24.0|6.2|1.8|4.6|2.8|520|street|plate|280|street,spicy
+Dabeli|દાબેલી|Gujarati|west|veg|262|5.4|38.0|9.8|3.2|2.8|6.4|540|street|piece|110|street,kutch
+Samosa|समोसा|Fast Food|pan|veg|308|5.0|32.0|18.0|6.0|3.0|1.6|420|fried|piece|60|street,fried
+Kachori|कचौड़ी|Rajasthani|north|veg|338|7.4|34.0|19.4|6.6|3.6|1.4|440|fried|piece|60|street,fried
+Aloo Tikki|आलू टिक्की|North Indian|north|veg|186|3.0|26.0|8.0|2.0|2.4|1.6|380|street|piece|70|street
+Chole Bhature|छोले भटूरे|Punjabi|north|veg|268|7.4|33.0|11.8|4.4|4.2|2.6|500|mixed|plate|300|street,popular
+Chaat Papdi|पापड़ी चाट|North Indian|north|veg|242|5.6|31.0|10.6|3.4|2.8|5.4|560|street|plate|120|street
+Dahi Bhalla|दही भल्ला|North Indian|north|veg|168|5.4|20.0|7.2|2.4|2.6|5.0|420|street|piece|60|street
+Kathi Roll|कठी रोल|Fast Food|east|nonveg|248|11.0|28.0|10.4|3.6|2.0|2.4|520|street|piece|180|kolkata,street
+Momos Veg|मोमो|Fast Food|east|veg|168|5.2|28.0|3.8|1.0|1.8|1.6|380|street|piece|25|street,steamed
+Momos Chicken|चिकन मोमो|Fast Food|east|nonveg|186|9.6|25.0|5.4|1.6|1.4|1.4|420|street|piece|25|street,steamed
+Bread Pakora|ब्रेड पकौड़ा|North Indian|north|veg|294|6.6|32.0|15.4|4.0|2.6|2.2|520|fried|piece|80|street,fried
+Onion Pakora|प्याज पकौड़ा|Fast Food|pan|veg|286|7.2|28.0|16.2|3.6|4.0|3.0|480|fried|piece|20|monsoon,fried
+Paneer Pakora|पनीर पकौड़ा|North Indian|north|veg|308|11.4|20.0|20.4|7.6|2.6|2.0|460|fried|piece|35|fried
+Frankie|फ्रैंकी|Fast Food|west|veg|252|7.0|32.0|10.4|3.4|2.8|3.0|540|street|piece|170|mumbai,street
+Egg Roll|एग रोल|Fast Food|east|egg|262|9.8|30.0|11.6|3.8|2.0|2.6|540|street|piece|160|kolkata,street
+Idli Fry|इडली फ्राई|South Indian|south|veg|196|4.4|26.0|8.4|3.0|1.6|1.0|420|street|piece|50|street
+Masala Papad|मसाला पापड़|North Indian|pan|veg|314|13.0|38.0|12.0|3.0|4.0|3.2|1400|snack|piece|20|starter
+Chilli Paneer|चिली पनीर|Fast Food|pan|veg|248|12.0|14.0|16.4|7.0|1.6|4.0|620|street|plate|150|indo-chinese
+Gobi Manchurian|गोभी मंचूरियन|Fast Food|pan|veg|198|4.4|23.0|10.2|2.4|3.0|5.4|660|street|plate|150|indo-chinese
+Hakka Noodles|हक्का नूडल्स|Fast Food|pan|veg|186|5.0|28.0|6.2|1.4|2.4|2.2|540|street|plate|200|indo-chinese
+# ---------------------------------------------------------------- SWEETS
+Gulab Jamun|गुलाब जामुन|North Indian|pan|veg|368|4.6|52.0|16.0|8.6|0.4|42.0|110|sweet|piece|40|festival
+Rasgulla|রসগোল্লা|Bengali|east|veg|186|4.0|38.0|1.8|1.0|0.1|36.0|60|sweet|piece|45|bengali,festival
+Rasmalai|রসমালাই|Bengali|east|veg|264|7.4|30.0|13.0|8.0|0.2|28.0|90|sweet|piece|60|bengali,festival
+Sandesh|সন্দেশ|Bengali|east|veg|298|11.0|30.0|15.0|9.4|0.2|27.0|80|sweet|piece|30|bengali
+Mysore Pak|ಮೈಸೂರು ಪಾಕ್|South Indian|south|veg|518|6.0|52.0|32.0|20.0|1.8|44.0|60|sweet|piece|25|festival,rich
+Jalebi|जलेबी|North Indian|pan|veg|412|2.8|62.0|17.0|8.0|0.4|50.0|80|sweet|piece|25|festival,fried
+Laddu Besan|बेसन लड्डू|North Indian|pan|veg|468|8.4|52.0|25.0|13.0|3.4|38.0|70|sweet|piece|35|festival
+Motichoor Laddu|मोतीचूर लड्डू|North Indian|north|veg|452|6.0|56.0|23.0|12.0|1.6|42.0|60|sweet|piece|35|festival
+Kaju Katli|काजू कतली|North Indian|pan|veg|478|9.0|52.0|26.0|10.0|1.8|44.0|40|sweet|piece|12|festival,cashew
+Barfi|बर्फी|North Indian|pan|veg|412|8.0|48.0|21.0|13.0|0.8|42.0|90|sweet|piece|25|festival
+Peda|पेड़ा|North Indian|pan|veg|398|9.2|46.0|20.0|12.6|0.3|43.0|100|sweet|piece|20|temple
+Halwa Suji|सूजी हलवा|North Indian|pan|veg|352|4.4|48.0|16.0|9.8|1.2|30.0|90|sweet|bowl|100|festival
+Gajar Halwa|गाजर हलवा|Punjabi|north|veg|268|4.0|34.0|13.0|8.2|2.4|28.0|110|sweet|bowl|120|winter,festival
+Moong Dal Halwa|मूंग दाल हलवा|Rajasthani|north|veg|432|8.0|46.0|24.0|14.0|3.0|32.0|90|sweet|bowl|100|winter,rich
+Kheer|खीर|North Indian|pan|veg|142|3.6|22.0|4.4|2.6|0.3|18.0|60|sweet|bowl|150|festival
+Payasam|പായസം|South Indian|south|veg|156|3.2|24.0|5.4|3.8|0.6|20.0|70|sweet|bowl|150|onam,festival
+Phirni|फिरनी|North Indian|north|veg|168|3.8|24.0|6.2|3.6|0.3|19.0|60|sweet|bowl|130|festival
+Shrikhand|શ્રીખંડ|Gujarati|west|veg|248|6.4|34.0|9.6|6.0|0.2|32.0|80|sweet|bowl|100|festival
+Basundi|બાસુંદી|Gujarati|west|veg|228|6.8|28.0|10.0|6.4|0.1|26.0|90|sweet|bowl|120|festival
+Modak|मोदक|Maharashtrian|west|veg|292|4.2|44.0|11.4|8.0|2.4|24.0|60|sweet|piece|35|ganesh,festival
+Puran Poli|पुरण पोळी|Maharashtrian|west|veg|298|6.4|48.0|8.6|4.0|3.4|24.0|140|sweet|piece|70|festival
+Malpua|मालपुआ|Bihari|east|veg|368|5.0|52.0|15.6|8.2|0.8|34.0|100|sweet|piece|40|festival,fried
+Rabri|रबड़ी|North Indian|north|veg|246|7.2|28.0|11.6|7.4|0.1|26.0|95|sweet|bowl|100|festival
+Kulfi|कुल्फी|North Indian|pan|veg|218|5.4|24.0|11.4|7.2|0.4|22.0|70|sweet|piece|60|summer
+Sheer Khurma|शीर खुरमा|North Indian|north|veg|218|5.6|28.0|9.4|5.0|1.2|24.0|80|sweet|bowl|150|eid,festival
+Chhena Poda|ଛେନା ପୋଡ଼|Odia|east|veg|312|11.0|34.0|14.6|9.0|0.4|30.0|110|sweet|piece|60|odia,baked
+Pitha|পিঠা|Assamese|east|veg|286|4.0|46.0|10.0|6.4|1.6|20.0|70|sweet|piece|50|assamese,festival
+Ghevar|घेवर|Rajasthani|north|veg|418|5.0|54.0|20.0|10.6|0.8|34.0|80|sweet|piece|60|teej,festival
+Balushahi|बालूशाही|North Indian|north|veg|402|4.4|52.0|20.0|11.0|0.6|32.0|110|sweet|piece|40|festival
+Soan Papdi|सोन पापड़ी|North Indian|pan|veg|492|4.6|64.0|24.0|13.0|0.8|48.0|70|sweet|piece|20|festival
+# ---------------------------------------------------------------- SNACKS
+Poha Chivda|चिवड़ा|Maharashtrian|west|veg|452|8.0|58.0|21.0|5.0|4.4|6.0|780|snack|bowl|30|namkeen
+Sev|સેવ|Gujarati|west|veg|528|18.0|46.0|30.0|7.0|6.0|2.0|880|snack|bowl|25|namkeen
+Bhujia|भुजिया|Rajasthani|north|veg|544|20.0|42.0|32.0|8.0|6.4|2.4|920|snack|bowl|25|namkeen,bikaner
+Mathri|मठरी|Rajasthani|north|veg|498|8.0|54.0|28.0|9.0|2.6|1.4|620|snack|piece|20|namkeen
+Chakli|चकली|Maharashtrian|west|veg|486|9.6|52.0|27.0|7.4|4.2|1.6|720|snack|piece|15|diwali
+Murukku|முறுக்கு|South Indian|south|veg|478|9.0|54.0|25.0|7.0|3.6|1.2|680|snack|piece|15|diwali
+Banana Chips|വാഴക്കാ ചിപ്സ്|South Indian|south|veg|536|2.4|58.0|34.0|24.0|4.4|8.0|180|snack|bowl|30|kerala
+Masala Peanuts|मसाला मूंगफली|Fast Food|pan|veg|562|24.0|24.0|42.0|7.0|8.0|4.0|520|snack|bowl|30|protein
+Roasted Chana|भुना चना|Healthy Foods|pan|veg|364|20.0|58.0|5.2|0.6|18.0|4.8|60|snack|bowl|30|healthy,protein
+Makhana Roasted|मखाना|Healthy Foods|pan|veg|347|9.7|76.9|0.1|0.0|14.5|0.0|20|snack|bowl|25|healthy,fasting
+Khakhra|ખાખરા|Gujarati|west|veg|398|11.6|62.0|11.0|2.6|8.4|2.0|560|snack|piece|15|healthy,travel
+Fafda|ફાફડા|Gujarati|west|veg|502|13.0|46.0|30.0|7.4|5.0|2.0|760|snack|bowl|40|gujarati,fried
+Papdi Gathiya|ગાંઠિયા|Gujarati|west|veg|512|13.4|48.0|30.0|7.6|5.2|2.2|780|snack|bowl|40|gujarati,fried
+# ---------------------------------------------------------------- DRINKS
+Masala Chai|मसाला चाय|North Indian|pan|veg|68|1.8|9.4|2.4|1.5|0.0|8.6|22|beverage|cup|150|everyday
+Filter Coffee|ಫಿಲ್ಟರ್ ಕಾಫಿ|South Indian|south|veg|62|1.9|8.6|2.2|1.4|0.0|8.0|24|beverage|cup|120|everyday
+Sweet Lassi|मीठी लस्सी|Punjabi|north|veg|98|3.0|15.0|2.6|1.6|0.0|14.0|46|beverage|glass|250|summer
+Salted Lassi|नमकीन लस्सी|Punjabi|north|veg|54|3.2|5.0|2.4|1.5|0.0|4.4|240|beverage|glass|250|summer
+Chaas|छाछ|Gujarati|west|veg|32|1.8|3.4|1.0|0.6|0.0|3.0|220|beverage|glass|250|digestive
+Mango Lassi|आम लस्सी|Punjabi|north|veg|112|2.8|20.0|2.4|1.5|0.4|18.0|42|beverage|glass|250|summer
+Nimbu Pani|नींबू पानी|Fast Food|pan|vegan|42|0.1|10.6|0.0|0.0|0.2|10.0|60|beverage|glass|250|summer
+Aam Panna|आम पन्ना|North Indian|north|vegan|58|0.3|14.4|0.1|0.0|0.6|13.0|140|beverage|glass|200|summer
+Jaljeera|जलजीरा|North Indian|north|vegan|28|0.4|6.6|0.1|0.0|0.4|5.4|320|beverage|glass|200|digestive
+Coconut Water|नारियल पानी|Healthy Foods|south|vegan|19|0.7|3.7|0.2|0.2|1.1|2.6|105|beverage|glass|250|healthy
+Sugarcane Juice|गन्ने का रस|Fast Food|pan|vegan|74|0.2|18.6|0.1|0.0|0.2|17.0|12|beverage|glass|250|summer,street
+Badam Milk|बादाम दूध|North Indian|pan|veg|118|4.2|14.0|5.0|2.4|0.6|12.0|60|beverage|glass|200|winter
+Thandai|ठंडाई|North Indian|north|veg|142|4.6|18.0|6.0|2.6|1.0|16.0|58|beverage|glass|200|holi,festival
+Rose Milk|रोज़ मिल्क|South Indian|south|veg|104|3.2|16.0|3.2|2.0|0.0|15.0|48|beverage|glass|200|summer
+Solkadhi|सोलकढी|Goan|west|veg|58|1.0|5.0|4.0|3.4|0.6|2.4|180|beverage|glass|150|goan,digestive
+# ---------------------------------------------------------------- DAIRY & BASICS
+Paneer|पनीर|Vegetarian|pan|veg|296|18.3|3.6|23.0|14.2|0.0|2.6|22|dairy|serving|50|protein,ingredient
+Curd Dahi|दही|Vegetarian|pan|veg|60|3.1|4.7|3.3|2.1|0.0|4.7|46|dairy|bowl|150|everyday,probiotic
+Greek Yogurt|ग्रीक योगर्ट|Healthy Foods|pan|veg|97|9.0|3.9|5.0|3.2|0.0|3.6|36|dairy|bowl|150|protein
+Buffalo Milk|भैंस का दूध|Vegetarian|pan|veg|97|3.8|5.2|6.9|4.6|0.0|5.2|52|dairy|glass|200|everyday
+Cow Milk|गाय का दूध|Vegetarian|pan|veg|61|3.2|4.8|3.3|1.9|0.0|4.8|43|dairy|glass|200|everyday
+Toned Milk|टोंड दूध|Vegetarian|pan|veg|48|3.2|4.9|1.8|1.1|0.0|4.9|44|dairy|glass|200|everyday
+Ghee|घी|Vegetarian|pan|veg|900|0.0|0.0|100.0|62.0|0.0|0.0|2|fat|spoon|10|ingredient
+Butter|मक्खन|Vegetarian|pan|veg|717|0.9|0.1|81.0|51.0|0.0|0.1|11|fat|spoon|10|ingredient
+Malai|मलाई|Vegetarian|pan|veg|340|2.6|3.0|35.0|22.0|0.0|3.0|30|dairy|spoon|15|ingredient
+Khoya|खोया|Vegetarian|pan|veg|420|14.0|20.0|31.0|20.0|0.0|20.0|80|dairy|serving|30|ingredient
+Cheese Processed|चीज़|Vegetarian|pan|veg|350|22.0|2.4|28.0|18.0|0.0|1.0|1200|dairy|piece|20|ingredient
+# ---------------------------------------------------------------- FRUITS
+Mango|आम|Healthy Foods|pan|vegan|60|0.8|15.0|0.4|0.1|1.6|13.7|1|fruit|piece|200|summer
+Banana|केला|Healthy Foods|pan|vegan|89|1.1|22.8|0.3|0.1|2.6|12.2|1|fruit|piece|120|everyday
+Apple|सेब|Healthy Foods|pan|vegan|52|0.3|13.8|0.2|0.0|2.4|10.4|1|fruit|piece|180|everyday
+Papaya|पपीता|Healthy Foods|pan|vegan|43|0.5|10.8|0.3|0.1|1.7|7.8|8|fruit|bowl|150|digestive
+Guava|अमरूद|Healthy Foods|pan|vegan|68|2.6|14.3|1.0|0.3|5.4|8.9|2|fruit|piece|100|vitamin-c
+Pomegranate|अनार|Healthy Foods|pan|vegan|83|1.7|18.7|1.2|0.1|4.0|13.7|3|fruit|bowl|150|antioxidant
+Watermelon|तरबूज|Healthy Foods|pan|vegan|30|0.6|7.6|0.2|0.0|0.4|6.2|1|fruit|bowl|200|summer
+Orange|संतरा|Healthy Foods|pan|vegan|47|0.9|11.8|0.1|0.0|2.4|9.4|0|fruit|piece|130|vitamin-c
+Grapes|अंगूर|Healthy Foods|pan|vegan|69|0.7|18.1|0.2|0.1|0.9|15.5|2|fruit|bowl|100|everyday
+Chikoo|चीकू|Healthy Foods|pan|vegan|83|0.4|20.0|1.1|0.2|5.3|15.0|12|fruit|piece|90|everyday
+Custard Apple|सीताफल|Healthy Foods|pan|vegan|94|2.1|23.6|0.6|0.0|4.4|18.0|4|fruit|piece|150|winter
+Jackfruit|कटहल|Healthy Foods|south|vegan|95|1.7|23.2|0.6|0.2|1.5|19.1|2|fruit|bowl|150|summer
+Litchi|लीची|Healthy Foods|east|vegan|66|0.8|16.5|0.4|0.1|1.3|15.2|1|fruit|bowl|100|summer
+Amla|आंवला|Healthy Foods|pan|vegan|44|0.9|10.2|0.6|0.1|4.3|4.0|1|fruit|piece|40|vitamin-c
+Dates|खजूर|Healthy Foods|pan|vegan|282|2.5|75.0|0.4|0.0|8.0|63.0|2|fruit|piece|8|energy
+# ---------------------------------------------------------------- VEGETABLES RAW
+Potato|आलू|Vegetarian|pan|vegan|77|2.0|17.5|0.1|0.0|2.2|0.8|6|vegetable|piece|150|staple
+Onion|प्याज|Vegetarian|pan|vegan|40|1.1|9.3|0.1|0.0|1.7|4.2|4|vegetable|piece|100|staple
+Tomato|टमाटर|Vegetarian|pan|vegan|18|0.9|3.9|0.2|0.0|1.2|2.6|5|vegetable|piece|100|staple
+Spinach|पालक|Healthy Foods|pan|vegan|23|2.9|3.6|0.4|0.1|2.2|0.4|79|vegetable|bowl|100|iron
+Cauliflower|फूलगोभी|Vegetarian|pan|vegan|25|1.9|5.0|0.3|0.1|2.0|1.9|30|vegetable|bowl|100|everyday
+Okra|भिंडी|Vegetarian|pan|vegan|33|1.9|7.5|0.2|0.0|3.2|1.5|7|vegetable|bowl|100|everyday
+Bottle Gourd|लौकी|Healthy Foods|pan|vegan|14|0.6|3.4|0.0|0.0|0.5|0.5|2|vegetable|bowl|100|light
+Bitter Gourd|करेला|Healthy Foods|pan|vegan|17|1.0|3.7|0.2|0.0|2.8|1.9|5|vegetable|bowl|100|diabetic
+Carrot|गाजर|Healthy Foods|pan|vegan|41|0.9|9.6|0.2|0.0|2.8|4.7|69|vegetable|piece|80|vitamin-a
+Green Peas|मटर|Healthy Foods|pan|vegan|81|5.4|14.5|0.4|0.1|5.7|5.7|5|vegetable|bowl|100|protein
+Cabbage|पत्ता गोभी|Vegetarian|pan|vegan|25|1.3|5.8|0.1|0.0|2.5|3.2|18|vegetable|bowl|100|everyday
+Drumstick|सहजन|Healthy Foods|south|vegan|37|2.1|8.5|0.2|0.0|3.2|1.8|42|vegetable|piece|50|healthy
+Eggplant|बैंगन|Vegetarian|pan|vegan|25|1.0|5.9|0.2|0.0|3.0|3.5|2|vegetable|piece|100|everyday
+Sweet Potato|शकरकंद|Healthy Foods|pan|vegan|86|1.6|20.1|0.1|0.0|3.0|4.2|55|vegetable|piece|130|fasting
+# ---------------------------------------------------------------- GRAINS RAW
+Basmati Rice Raw|बासमती चावल|Vegetarian|pan|vegan|349|7.5|78.0|0.6|0.2|1.3|0.1|5|grain|cup|180|staple
+Wheat Flour Atta|गेहूं का आटा|Vegetarian|pan|vegan|341|12.1|69.4|1.7|0.3|11.2|0.4|2|grain|cup|120|staple
+Besan|बेसन|Vegetarian|pan|vegan|387|22.4|57.8|6.7|0.7|10.8|10.8|64|legume|cup|90|staple
+Suji Rava|सूजी|Vegetarian|pan|vegan|360|12.7|72.8|1.1|0.2|3.9|0.0|1|grain|cup|160|staple
+Poha Raw|पोहा|Vegetarian|pan|vegan|346|6.6|77.3|1.2|0.3|2.6|0.4|8|grain|cup|100|staple
+Oats|ओट्स|Healthy Foods|pan|vegan|389|16.9|66.3|6.9|1.2|10.6|0.0|2|grain|cup|80|healthy,fiber
+Quinoa|क्विनोआ|Healthy Foods|pan|vegan|368|14.1|64.2|6.1|0.7|7.0|4.6|5|grain|cup|170|healthy,protein
+Ragi Flour|रागी आटा|Healthy Foods|south|vegan|328|7.3|72.0|1.3|0.3|11.5|0.5|11|grain|cup|120|calcium
+Bajra|बाजरा|Healthy Foods|north|vegan|361|11.6|67.5|5.0|0.9|11.3|1.0|12|grain|cup|150|millet
+Jowar|ज्वार|Healthy Foods|west|vegan|349|10.4|72.6|1.9|0.3|9.7|0.9|7|grain|cup|150|millet

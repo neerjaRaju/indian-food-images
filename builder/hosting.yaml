@@ -1,0 +1,45 @@
+active: jsdelivr
+providers:
+  jsdelivr:
+    type: jsdelivr
+    owner: CHANGE_ME
+    repo: indian-food-images
+    ref: latest
+    base_path: images/foods
+    template: https://cdn.jsdelivr.net/gh/{owner}/{repo}@{ref}/{base_path}/{folder}/{slug}.webp
+  github_releases:
+    type: github_releases
+    owner: CHANGE_ME
+    repo: indian-food-images
+    tag: images-latest
+    template: https://github.com/{owner}/{repo}/releases/download/{tag}/{folder}_{slug}.webp
+  github_pages:
+    type: static
+    template: https://{owner}.github.io/{repo}/images/foods/{folder}/{slug}.webp
+    owner: CHANGE_ME
+    repo: indian-food-images
+  cloudflare_r2:
+    type: static
+    template: https://{account}.r2.dev/images/foods/{folder}/{slug}.webp
+    account: CHANGE_ME
+  cloudflare_cdn:
+    type: static
+    template: https://{domain}/images/foods/{folder}/{slug}.webp
+    domain: cdn.example.com
+  netlify:
+    type: static
+    template: https://{site}.netlify.app/images/foods/{folder}/{slug}.webp
+    site: CHANGE_ME
+  vercel:
+    type: static
+    template: https://{site}.vercel.app/images/foods/{folder}/{slug}.webp
+    site: CHANGE_ME
+  firebase:
+    type: static
+    template: https://{project}.web.app/images/foods/{folder}/{slug}.webp
+    project: CHANGE_ME
+  custom_https:
+    type: static
+    template: https://{host}/{base_path}/{folder}/{slug}.webp
+    host: example.com
+    base_path: images/foods
