@@ -176,19 +176,39 @@ def test_permission_failure_is_fatal_and_names_the_fix():
 
     assert u._fatal is not None
     assert "IMAGES_TOKEN" in u._fatal
+    assert "Contents: Read and write" in u._fatal
 
     # And every later call refuses to spend more quota.
     with pytest.raises(GitHubPermissionError):
         u._api("GET", "https://api.github.com/y")
 
 
-def test_preflight_rejects_a_repo_the_token_cannot_push_to():
+def test_preflight_warns_but_continues_when_push_reads_false():
+    """
+    `permissions.push` is not trustworthy for fine-grained PATs, so it must
+    not be able to block a run on its own — only a real 403 may do that.
+    """
     u = make_uploader([
         FakeResponse(200, payload={"permissions": {"pull": True, "push": False}}),
     ])
 
-    assert u.preflight() is False
-    assert "contents: write" in (u._fatal or "")
+    assert u.preflight() is True
+    assert u._fatal is None
+
+
+def test_a_real_403_on_a_write_is_still_fatal():
+    """The other half of the bargain: ground truth does stop the run."""
+    u = make_uploader([
+        FakeResponse(200, payload={"permissions": {"pull": True, "push": False}}),
+        FakeResponse(403, text="Resource not accessible by personal access token"),
+    ])
+
+    assert u.preflight() is True
+
+    u._api("POST", "https://api.github.com/repos/owner/images/releases")
+
+    assert u._fatal is not None
+    assert "Contents: Read and write" in u._fatal
 
 
 def test_preflight_explains_a_404_as_a_token_scope_problem():

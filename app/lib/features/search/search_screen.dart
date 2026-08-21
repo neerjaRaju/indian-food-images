@@ -77,7 +77,10 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() => _listening = true);
     // Hindi first with an English fallback — most users mix the two.
     await _speech.listen(
-      localeId: 'hi_IN',
+      // The bare localeId argument is deprecated in speech_to_text 7; the
+      // per-session settings now live in SpeechListenOptions. partialResults
+      // stays on (its default) because the field updates as you speak.
+      listenOptions: SpeechListenOptions(localeId: 'hi_IN'),
       onResult: (result) {
         _controller.text = result.recognizedWords;
         search.setQuery(result.recognizedWords);
@@ -170,6 +173,7 @@ class _SearchScreenState extends State<SearchScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      useSafeArea: true,
       builder: (_) => FilterSheet(
         initial: search.filter,
         categories: categories,

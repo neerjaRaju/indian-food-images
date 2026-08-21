@@ -53,23 +53,29 @@ class _ReportsScreenState extends State<ReportsScreen> {
           ),
         ],
       ),
-      body: PremiumGate(
-        feature: PremiumFeature.nutritionReports,
-        description: 'See how your intake trends across the week, where your '
-            'macros land on average, and export it as a PDF.',
-        child: FutureBuilder<Map<String, DayTotals>>(
-          future: _future,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32),
-                  child: CircularProgressIndicator(),
-                ),
-              );
-            }
-            return _ReportBody(totals: snapshot.requireData, days: _days);
-          },
+      body: SafeArea(
+        // Edge-to-edge: this screen is pushed full-screen, so
+        // nothing else keeps its last row clear of the gesture
+        // bar. The app bar already owns the top inset.
+        top: false,
+        child: PremiumGate(
+          feature: PremiumFeature.nutritionReports,
+          description: 'See how your intake trends across the week, where your '
+              'macros land on average, and export it as a PDF.',
+          child: FutureBuilder<Map<String, DayTotals>>(
+            future: _future,
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              return _ReportBody(totals: snapshot.requireData, days: _days);
+            },
+          ),
         ),
       ),
     );

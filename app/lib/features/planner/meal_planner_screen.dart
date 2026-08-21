@@ -140,43 +140,49 @@ class _MealPlannerScreenState extends State<MealPlannerScreen> {
             : const Icon(Icons.auto_awesome),
         label: Text(_generating ? 'Building…' : 'Generate week'),
       ),
-      body: FutureBuilder<List<MealPlan>>(
-        future: _future,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final plans = snapshot.requireData;
-          return ListView(
-            padding: const EdgeInsets.only(bottom: 96),
-            children: [
-              if (plans.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(28),
-                  child: Text(
-                    'Generate a week of meals built around your calorie goal. '
-                    'Every meal links back to the food, so you can swap '
-                    'portions or log it straight to your diary.',
-                    textAlign: TextAlign.center,
+      body: SafeArea(
+        // Edge-to-edge: this screen is pushed full-screen, so
+        // nothing else keeps its last row clear of the gesture
+        // bar. The app bar already owns the top inset.
+        top: false,
+        child: FutureBuilder<List<MealPlan>>(
+          future: _future,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final plans = snapshot.requireData;
+            return ListView(
+              padding: const EdgeInsets.only(bottom: 96),
+              children: [
+                if (plans.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(28),
+                    child: Text(
+                      'Generate a week of meals built around your calorie goal. '
+                      'Every meal links back to the food, so you can swap '
+                      'portions or log it straight to your diary.',
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                ),
-              for (final plan in plans)
-                _PlanCard(
-                    plan: plan,
-                    onChanged: () {
-                      setState(() => _future = _load());
-                    }),
-              if (!premium.isUnlocked(PremiumFeature.unlimitedMealPlans))
-                const PremiumGate(
-                  feature: PremiumFeature.unlimitedMealPlans,
-                  description:
-                      'Keep more than one saved plan for a week, so you can '
-                      'build a rotation instead of overwriting.',
-                  child: SizedBox.shrink(),
-                ),
-            ],
-          );
-        },
+                for (final plan in plans)
+                  _PlanCard(
+                      plan: plan,
+                      onChanged: () {
+                        setState(() => _future = _load());
+                      }),
+                if (!premium.isUnlocked(PremiumFeature.unlimitedMealPlans))
+                  const PremiumGate(
+                    feature: PremiumFeature.unlimitedMealPlans,
+                    description:
+                        'Keep more than one saved plan for a week, so you can '
+                        'build a rotation instead of overwriting.',
+                    child: SizedBox.shrink(),
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

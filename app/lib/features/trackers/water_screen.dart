@@ -61,110 +61,116 @@ class _WaterScreenState extends State<WaterScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Center(
-            child: SizedBox(
-              width: 180,
-              height: 180,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox.expand(
-                    child: CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 14,
-                      strokeCap: StrokeCap.round,
-                      color: AppTheme.water,
-                      backgroundColor:
-                          theme.colorScheme.surfaceContainerHighest,
-                    ),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('${diary.waterMl}',
-                          style: theme.textTheme.displaySmall
-                              ?.copyWith(fontWeight: FontWeight.w700)),
-                      Text('of ${prefs.waterGoalMl} ml',
-                          style: theme.textTheme.bodyMedium),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 28),
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              for (final ml in _presets)
-                FilledButton.tonal(
-                  onPressed: () async {
-                    await diary.addWater(ml);
-                    setState(() => _history = _loadHistory());
-                  },
-                  child: Text('+$ml ml'),
-                ),
-              OutlinedButton(
-                onPressed: () async {
-                  await diary.addWater(-250);
-                  setState(() => _history = _loadHistory());
-                },
-                child: const Text('−250 ml'),
-              ),
-            ],
-          ),
-          const SizedBox(height: 28),
-          Text('Daily goal', style: theme.textTheme.titleMedium),
-          Slider(
-            value: prefs.waterGoalMl.toDouble().clamp(1000, 6000),
-            min: 1000,
-            max: 6000,
-            divisions: 50,
-            label: '${prefs.waterGoalMl} ml',
-            onChanged: (v) => prefs.setWaterGoal(v.round()),
-          ),
-          const SizedBox(height: 16),
-          Text('Last 7 days', style: theme.textTheme.titleMedium),
-          const SizedBox(height: 12),
-          FutureBuilder<Map<String, int>>(
-            future: _history,
-            builder: (context, snapshot) {
-              final data = snapshot.data ?? const <String, int>{};
-              final today = DateTime.now();
-              return SizedBox(
-                height: 140,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+      body: SafeArea(
+        // Edge-to-edge: this screen is pushed full-screen, so
+        // nothing else keeps its last row clear of the gesture
+        // bar. The app bar already owns the top inset.
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Center(
+              child: SizedBox(
+                width: 180,
+                height: 180,
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    for (var i = 6; i >= 0; i--)
-                      Expanded(
-                        child: _Bar(
-                          value: data[
-                                  isoDate(today.subtract(Duration(days: i)))] ??
-                              0,
-                          goal: prefs.waterGoalMl,
-                          label: _weekday(today.subtract(Duration(days: i))),
-                        ),
+                    SizedBox.expand(
+                      child: CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 14,
+                        strokeCap: StrokeCap.round,
+                        color: AppTheme.water,
+                        backgroundColor:
+                            theme.colorScheme.surfaceContainerHighest,
                       ),
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('${diary.waterMl}',
+                            style: theme.textTheme.displaySmall
+                                ?.copyWith(fontWeight: FontWeight.w700)),
+                        Text('of ${prefs.waterGoalMl} ml',
+                            style: theme.textTheme.bodyMedium),
+                      ],
+                    ),
                   ],
                 ),
-              );
-            },
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'The 35 ml per kilogram rule is a starting point. Hot weather, '
-            'physical work and high-fibre Indian diets all push the number up; '
-            'thirst and pale urine are better day-to-day signals than a target.',
-            style: theme.textTheme.labelSmall
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-          ),
-        ],
+              ),
+            ),
+            const SizedBox(height: 28),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                for (final ml in _presets)
+                  FilledButton.tonal(
+                    onPressed: () async {
+                      await diary.addWater(ml);
+                      setState(() => _history = _loadHistory());
+                    },
+                    child: Text('+$ml ml'),
+                  ),
+                OutlinedButton(
+                  onPressed: () async {
+                    await diary.addWater(-250);
+                    setState(() => _history = _loadHistory());
+                  },
+                  child: const Text('−250 ml'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 28),
+            Text('Daily goal', style: theme.textTheme.titleMedium),
+            Slider(
+              value: prefs.waterGoalMl.toDouble().clamp(1000, 6000),
+              min: 1000,
+              max: 6000,
+              divisions: 50,
+              label: '${prefs.waterGoalMl} ml',
+              onChanged: (v) => prefs.setWaterGoal(v.round()),
+            ),
+            const SizedBox(height: 16),
+            Text('Last 7 days', style: theme.textTheme.titleMedium),
+            const SizedBox(height: 12),
+            FutureBuilder<Map<String, int>>(
+              future: _history,
+              builder: (context, snapshot) {
+                final data = snapshot.data ?? const <String, int>{};
+                final today = DateTime.now();
+                return SizedBox(
+                  height: 140,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (var i = 6; i >= 0; i--)
+                        Expanded(
+                          child: _Bar(
+                            value: data[isoDate(
+                                    today.subtract(Duration(days: i)))] ??
+                                0,
+                            goal: prefs.waterGoalMl,
+                            label: _weekday(today.subtract(Duration(days: i))),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'The 35 ml per kilogram rule is a starting point. Hot weather, '
+              'physical work and high-fibre Indian diets all push the number up; '
+              'thirst and pale urine are better day-to-day signals than a target.',
+              style: theme.textTheme.labelSmall
+                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            ),
+          ],
+        ),
       ),
     );
   }

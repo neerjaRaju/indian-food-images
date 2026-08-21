@@ -89,37 +89,43 @@ class _CategoryScreenState extends State<CategoryScreen> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          if (_total > 0)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('$_total foods',
-                    style: Theme.of(context).textTheme.labelMedium),
+      body: SafeArea(
+        // Edge-to-edge: this screen is pushed full-screen, so
+        // nothing else keeps its last row clear of the gesture
+        // bar. The app bar already owns the top inset.
+        top: false,
+        child: Column(
+          children: [
+            if (_total > 0)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('$_total foods',
+                      style: Theme.of(context).textTheme.labelMedium),
+                ),
               ),
+            Expanded(
+              child: _foods.isEmpty && _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView.separated(
+                      controller: _scroll,
+                      itemCount: _foods.length + (_hasMore ? 1 : 0),
+                      separatorBuilder: (_, __) =>
+                          const Divider(height: 1, indent: 84),
+                      itemBuilder: (context, i) {
+                        if (i >= _foods.length) {
+                          return const Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        }
+                        return FoodTile(food: _foods[i]);
+                      },
+                    ),
             ),
-          Expanded(
-            child: _foods.isEmpty && _loading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.separated(
-                    controller: _scroll,
-                    itemCount: _foods.length + (_hasMore ? 1 : 0),
-                    separatorBuilder: (_, __) =>
-                        const Divider(height: 1, indent: 84),
-                    itemBuilder: (context, i) {
-                      if (i >= _foods.length) {
-                        return const Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-                      return FoodTile(food: _foods[i]);
-                    },
-                  ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

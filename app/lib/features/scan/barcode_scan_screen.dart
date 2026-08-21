@@ -89,35 +89,40 @@ class _BarcodeScanScreenState extends State<BarcodeScanScreen> {
             left: 16,
             right: 16,
             bottom: 24,
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _lastMiss.isEmpty
-                          ? 'Point the camera at a packaged food barcode.'
-                          : 'No match for $_lastMiss in the offline database.',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    if (_lastMiss.isNotEmpty) ...[
-                      const SizedBox(height: 10),
+            // Only the hint card is inset. The camera preview behind it stays
+            // full-bleed — insetting a viewfinder would letterbox it.
+            child: SafeArea(
+              top: false,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
                       Text(
-                        'Packaged products come from Open Food Facts and are '
-                        'refreshed with the weekly database update.',
+                        _lastMiss.isEmpty
+                            ? 'Point the camera at a packaged food barcode.'
+                            : 'No match for $_lastMiss in the offline database.',
                         textAlign: TextAlign.center,
-                        style: theme.textTheme.labelSmall,
+                        style: theme.textTheme.bodyMedium,
                       ),
-                      const SizedBox(height: 10),
-                      OutlinedButton(
-                        onPressed: () => context
-                            .pushReplacement('${Routes.search}?q=$_lastMiss'),
-                        child: const Text('Search by name instead'),
-                      ),
+                      if (_lastMiss.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          'Packaged products come from Open Food Facts and are '
+                          'refreshed with the weekly database update.',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.labelSmall,
+                        ),
+                        const SizedBox(height: 10),
+                        OutlinedButton(
+                          onPressed: () => context
+                              .pushReplacement('${Routes.search}?q=$_lastMiss'),
+                          child: const Text('Search by name instead'),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

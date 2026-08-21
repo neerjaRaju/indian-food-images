@@ -47,14 +47,20 @@ class _CalculatorsScreenState extends State<CalculatorsScreen>
           ],
         ),
       ),
-      body: TabBarView(
-        controller: _tabs,
-        children: const [
-          _BmiTab(),
-          _EnergyTab(),
-          _MacroTab(),
-          _ProteinTab(),
-        ],
+      body: SafeArea(
+        // Edge-to-edge: this screen is pushed full-screen, so
+        // nothing else keeps its last row clear of the gesture
+        // bar. The app bar already owns the top inset.
+        top: false,
+        child: TabBarView(
+          controller: _tabs,
+          children: const [
+            _BmiTab(),
+            _EnergyTab(),
+            _MacroTab(),
+            _ProteinTab(),
+          ],
+        ),
       ),
     );
   }

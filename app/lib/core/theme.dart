@@ -1,9 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Material 3 theme built from a single spice-toned seed so light and dark
 /// stay in step, plus the small overrides the app actually needs.
 class AppTheme {
   const AppTheme._();
+
+  /// Transparent system bars with icons that contrast against [brightness].
+  ///
+  /// Android 15 draws every app edge-to-edge whether it asks to or not, so the
+  /// only question left is whether the bars look deliberate. Contrast
+  /// enforcement is switched off because the scrim Android paints behind the
+  /// bars to "help" is exactly the grey band edge-to-edge is meant to remove.
+  static SystemUiOverlayStyle systemBarsFor(Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+    final icons = isDark ? Brightness.light : Brightness.dark;
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: icons,
+      // iOS reads the *background* brightness here, not the icon brightness.
+      statusBarBrightness: brightness,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarIconBrightness: icons,
+      systemNavigationBarContrastEnforced: false,
+      systemStatusBarContrastEnforced: false,
+    );
+  }
 
   /// Turmeric/saffron — reads as "Indian food" without being a literal chilli
   /// red, which at large fills looks like an error state.
@@ -36,6 +59,10 @@ class AppTheme {
         scrolledUnderElevation: 2,
         backgroundColor: scheme.surface,
         foregroundColor: scheme.onSurface,
+        // AppBar publishes its own AnnotatedRegion, so without this every
+        // screen with an app bar would override the root overlay style and
+        // repaint the bars opaque.
+        systemOverlayStyle: systemBarsFor(brightness),
         titleTextStyle: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,

@@ -26,6 +26,10 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  // Draw behind the status and navigation bars. Android 15 enforces this for
+  // anything targeting API 35+, so opting in explicitly is what makes the
+  // result look the same on older versions instead of only on the newest.
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   final prefs = await PreferencesService.create();
   runApp(IndianFoodApp(prefs: prefs));
 }
@@ -46,6 +50,7 @@ class IndianFoodApp extends StatelessWidget {
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),
           themeMode: prefs.themeMode,
+          builder: _systemBars,
           home: const AppBootstrap(),
         ),
       ),
@@ -161,9 +166,23 @@ class _RoutedAppState extends State<_RoutedApp> {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: prefs.themeMode,
+      builder: _systemBars,
       routerConfig: router,
     );
   }
+}
+
+/// Publishes the transparent system-bar style for screens that have no
+/// [AppBar] to publish one of their own.
+///
+/// This sits inside [MaterialApp] so `Theme.of` has already resolved
+/// themeMode against the platform brightness — reading the preference
+/// directly would get "system" wrong half the time.
+Widget _systemBars(BuildContext context, Widget? child) {
+  return AnnotatedRegion<SystemUiOverlayStyle>(
+    value: AppTheme.systemBarsFor(Theme.of(context).brightness),
+    child: child ?? const SizedBox.shrink(),
+  );
 }
 
 class _AppServices {

@@ -152,3 +152,10 @@ so the uploader is built around spending as few requests as it can:
   in the message instead of issuing thousands of doomed uploads. `ifca images`
   then exits non-zero, so the database is never built against image URLs that
   were never published.
+- **Only a real write decides whether the token is good enough.** The preflight
+  checks that the images repo is reachable and stops on a 404, but it treats the
+  `permissions.push` field the API reports as advisory: there is no supported
+  way to introspect a fine-grained PAT's grants, and that field can read `false`
+  for a token that does hold Contents: write. It logs a warning and continues.
+  The first release create or asset upload is a genuine write and settles it a
+  second or two later.

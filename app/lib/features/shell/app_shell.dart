@@ -35,6 +35,10 @@ class AppShell extends StatelessWidget {
         children: [
           const AdaptiveAdBanner(),
           NavigationBar(
+            // NavigationBar already insets itself for the gesture bar. This
+            // makes it hold that inset when the keyboard opens, which is what
+            // stops the bar jumping under SystemUiMode.edgeToEdge.
+            maintainBottomViewPadding: true,
             selectedIndex: _index,
             onDestinationSelected: (i) => context.go(_destinations[i].path),
             destinations: [

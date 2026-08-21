@@ -443,12 +443,16 @@ class GitHubReleaseUploader:
             hint += "No token was supplied."
         else:
             hint += (
-                "The token cannot write releases in this repository. "
-                "GITHUB_TOKEN is scoped to the workflow's own repository "
-                "and cannot publish to a separate images repository — set "
-                "the IMAGES_TOKEN secret to a PAT with `contents: write` "
-                "on "
-                f"{self.owner}/{self.repo}."
+                "The token cannot write releases here. Fixes, most likely "
+                "first: (1) give the fine-grained PAT in IMAGES_TOKEN "
+                "`Contents: Read and write` on "
+                f"{self.owner}/{self.repo} — Read-only is not enough, and "
+                "the releases API needs Contents, not Administration; "
+                "(2) check the token's Repository access actually lists "
+                "that repository; (3) if the owner is an organisation, "
+                "check the token is not still awaiting owner approval; "
+                "(4) if this is GITHUB_TOKEN, it cannot reach any "
+                "repository other than the one the workflow runs in."
             )
 
         self._fatal = hint
@@ -507,16 +511,33 @@ class GitHubReleaseUploader:
 
         permissions = response.json().get("permissions") or {}
 
+        # A warning, deliberately not a failure.
+        #
+        # GitHub documents this object as the authenticated token's
+        # capabilities, but it predates fine-grained PATs and there is no
+        # supported way to introspect one's grants. In practice `push` can
+        # read false for a token that really does hold Contents: write, and
+        # refusing to start on that basis blocks a correctly configured run.
+        #
+        # The authoritative test is a write, so we let the first one decide:
+        # creating or reusing a release shard is the uploader's very next
+        # step, and a genuine 403 there aborts the run through
+        # _note_permission_failure a couple of seconds later.
         if permissions and not permissions.get("push", False):
-            self._fatal = (
-                f"The token can read {self.owner}/{self.repo} but not "
-                "write to it; release uploads need `contents: write`."
+            _log.warning(
+                "%s/%s reports no write access for this token "
+                "(permissions=%s). Continuing anyway — this field is "
+                "unreliable for fine-grained PATs. If the upload fails "
+                "with 403, grant the token `Contents: Read and write` on "
+                "that repository.",
+                self.owner,
+                self.repo,
+                permissions,
             )
-            _log.error("%s", self._fatal)
-            return False
+            return True
 
         _log.info(
-            "Preflight OK: %s/%s is writable",
+            "Preflight OK: %s/%s is reachable",
             self.owner,
             self.repo,
         )

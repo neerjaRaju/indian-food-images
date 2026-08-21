@@ -5,10 +5,12 @@ import 'package:provider/provider.dart';
 import '../../core/router.dart';
 import '../../data/models/food.dart';
 import '../../data/repositories/food_repository.dart';
+import '../../data/services/ads_service.dart';
 import '../../data/services/database_update_service.dart';
 import '../../state/diary_controller.dart';
 import '../../widgets/food_tile.dart';
 import '../../widgets/nutrition_widgets.dart';
+import '../../widgets/premium_gate.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -107,6 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   final data = snapshot.requireData;
                   return SliverList.list(
                     children: [
+                      _Recommendations(data: data),
                       _CategoryStrip(categories: data.categories),
                       _FoodCarousel(
                           title: 'Everyday favourites', foods: data.popular),
@@ -139,6 +142,62 @@ class _HomeData {
   final List<Food> highProtein;
   final List<Food> lowCalorie;
   final List<FoodCategory> categories;
+}
+
+/// "Recommended for you" — foods that still fit inside today's remaining
+/// calorie budget, richest in protein first.
+///
+/// Deliberately built from the carousels the screen has already loaded rather
+/// than a new query: the value here is the ranking against the user's own
+/// diary, and a second round trip would delay first paint for it.
+class _Recommendations extends StatelessWidget {
+  const _Recommendations({required this.data});
+
+  final _HomeData data;
+
+  /// Below this there is no meaningful budget left to fill, and every
+  /// suggestion would be a rounding error.
+  static const _minimumBudget = 120.0;
+
+  List<Food> _pick(double budget) {
+    final seen = <int>{};
+    final candidates = <Food>[];
+    for (final food in [
+      ...data.highProtein,
+      ...data.lowCalorie,
+      ...data.popular
+    ]) {
+      if (food.calories <= 0 || food.calories > budget) continue;
+      if (!seen.add(food.id)) continue;
+      candidates.add(food);
+    }
+    // Protein per calorie: what actually makes one of two foods that both fit
+    // the budget the better choice.
+    candidates.sort(
+        (a, b) => (b.protein / b.calories).compareTo(a.protein / a.calories));
+    return candidates.take(12).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final diary = context.watch<DiaryController>();
+    final budget = diary.caloriesRemaining;
+    if (budget < _minimumBudget) return const SizedBox.shrink();
+    final picks = _pick(budget);
+    if (picks.isEmpty) return const SizedBox.shrink();
+    return PremiumGate(
+      feature: PremiumFeature.smartRecommendations,
+      compact: true,
+      icon: Icons.auto_awesome_outlined,
+      description: 'Watch one short ad to see which foods fit the '
+          '${budget.round()} kcal you have left today, ranked by protein. '
+          'Unlocks for ${formatRemaining(PremiumFeature.smartRecommendations.duration)}.',
+      child: _FoodCarousel(
+        title: 'Fits your remaining ${budget.round()} kcal',
+        foods: picks,
+      ),
+    );
+  }
 }
 
 class _SearchLauncher extends StatelessWidget {

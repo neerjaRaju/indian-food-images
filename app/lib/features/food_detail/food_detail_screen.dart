@@ -107,92 +107,100 @@ class _DetailBody extends StatelessWidget {
     final kcal = values[Nutrient.calories] ?? 0;
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: food.hasImage ? 240 : 100,
-            pinned: true,
-            actions: [
-              IconButton(
-                tooltip: 'Compare',
-                icon: const Icon(Icons.compare_arrows),
-                onPressed: () => context.push('${Routes.compare}?a=${food.id}'),
-              ),
-              IconButton(
-                tooltip: favorites.isFavorite(food.id)
-                    ? 'Remove from favourites'
-                    : 'Save to favourites',
-                icon: Icon(favorites.isFavorite(food.id)
-                    ? Icons.favorite
-                    : Icons.favorite_border),
-                onPressed: () => favorites.toggle(food),
-              ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                food.name,
-                style: const TextStyle(fontSize: 15),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              background: food.hasImage
-                  ? FoodImage(
-                      food: food,
-                      size: FoodImageSize.large,
-                      borderRadius: 0,
-                      heroTag: 'food-${food.id}',
-                    )
-                  : null,
-            ),
-          ),
-          SliverList.list(children: [
-            if (food.hasImage) ImageCreditLine(food: food),
-            _Header(food: food),
-            const Divider(height: 24),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Portion', style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 12),
-                  PortionSelector(food: food, onChanged: onPortionChanged),
-                ],
+      body: SafeArea(
+        // Edge-to-edge: this screen is pushed full-screen, so
+        // nothing else keeps its last row clear of the gesture
+        // bar. The app bar already owns the top inset.
+        top: false,
+        child: CustomScrollView(
+          slivers: [
+            SliverAppBar(
+              expandedHeight: food.hasImage ? 240 : 100,
+              pinned: true,
+              actions: [
+                IconButton(
+                  tooltip: 'Compare',
+                  icon: const Icon(Icons.compare_arrows),
+                  onPressed: () =>
+                      context.push('${Routes.compare}?a=${food.id}'),
+                ),
+                IconButton(
+                  tooltip: favorites.isFavorite(food.id)
+                      ? 'Remove from favourites'
+                      : 'Save to favourites',
+                  icon: Icon(favorites.isFavorite(food.id)
+                      ? Icons.favorite
+                      : Icons.favorite_border),
+                  onPressed: () => favorites.toggle(food),
+                ),
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                title: Text(
+                  food.name,
+                  style: const TextStyle(fontSize: 15),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                background: food.hasImage
+                    ? FoodImage(
+                        food: food,
+                        size: FoodImageSize.large,
+                        borderRadius: 0,
+                        heroTag: 'food-${food.id}',
+                      )
+                    : null,
               ),
             ),
-            const SizedBox(height: 20),
-            _CaloriesCard(kcal: kcal, values: values, grams: grams),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-              child: Text('Full nutrition', style: theme.textTheme.titleMedium),
-            ),
-            NutritionTable(
-              values: values,
-              microsEstimated: food.microsEstimated,
-            ),
-            if (food.description.isNotEmpty) ...[
-              const Divider(height: 32),
+            SliverList.list(children: [
+              if (food.hasImage) ImageCreditLine(food: food),
+              _Header(food: food),
+              const Divider(height: 24),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('About', style: theme.textTheme.titleMedium),
-                    const SizedBox(height: 8),
-                    Text(food.description, style: theme.textTheme.bodyMedium),
+                    Text('Portion', style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 12),
+                    PortionSelector(food: food, onChanged: onPortionChanged),
                   ],
                 ),
               ),
-            ],
-            if (data.recipe != null) _RecipeSection(recipe: data.recipe!),
-            if (food.regionalNames.isNotEmpty) _RegionalNames(food: food),
-            if (data.alternatives.isNotEmpty)
-              _Alternatives(alternatives: data.alternatives),
-            _SourceFooter(food: food),
-            const SizedBox(height: 96),
-          ]),
-        ],
+              const SizedBox(height: 20),
+              _CaloriesCard(kcal: kcal, values: values, grams: grams),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child:
+                    Text('Full nutrition', style: theme.textTheme.titleMedium),
+              ),
+              NutritionTable(
+                values: values,
+                microsEstimated: food.microsEstimated,
+              ),
+              if (food.description.isNotEmpty) ...[
+                const Divider(height: 32),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('About', style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Text(food.description, style: theme.textTheme.bodyMedium),
+                    ],
+                  ),
+                ),
+              ],
+              if (data.recipe != null) _RecipeSection(recipe: data.recipe!),
+              if (food.regionalNames.isNotEmpty) _RegionalNames(food: food),
+              if (data.alternatives.isNotEmpty)
+                _Alternatives(alternatives: data.alternatives),
+              _SourceFooter(food: food),
+              const SizedBox(height: 96),
+            ]),
+          ],
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddSheet(context, food, portion),
@@ -211,6 +219,7 @@ Future<void> _showAddSheet(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
+    useSafeArea: true,
     builder: (_) => _AddToDiarySheet(
       food: food,
       initialPortion: portion,

@@ -69,83 +69,91 @@ class _WeightScreenState extends State<WeightScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Log weight'),
       ),
-      body: FutureBuilder<List<WeightEntry>>(
-        future: _future,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final entries = snapshot.requireData;
-          final bmi = BodyMetrics.bmi(
-            weightKg: prefs.weightKg,
-            heightCm: prefs.heightCm,
-          );
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('${prefs.weightKg.toStringAsFixed(1)} kg',
-                                style: theme.textTheme.headlineMedium
-                                    ?.copyWith(fontWeight: FontWeight.w700)),
-                            Text(
-                              'BMI ${bmi.toStringAsFixed(1)} · '
-                              '${BodyMetrics.bmiCategory(bmi)}',
-                              style: theme.textTheme.bodySmall,
-                            ),
-                          ],
+      body: SafeArea(
+        // Edge-to-edge: this screen is pushed full-screen, so
+        // nothing else keeps its last row clear of the gesture
+        // bar. The app bar already owns the top inset.
+        top: false,
+        child: FutureBuilder<List<WeightEntry>>(
+          future: _future,
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            final entries = snapshot.requireData;
+            final bmi = BodyMetrics.bmi(
+              weightKg: prefs.weightKg,
+              heightCm: prefs.heightCm,
+            );
+            return ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('${prefs.weightKg.toStringAsFixed(1)} kg',
+                                  style: theme.textTheme.headlineMedium
+                                      ?.copyWith(fontWeight: FontWeight.w700)),
+                              Text(
+                                'BMI ${bmi.toStringAsFixed(1)} · '
+                                '${BodyMetrics.bmiCategory(bmi)}',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      if (entries.length >= 2)
-                        _Trend(
-                          delta: entries.last.kg - entries.first.kg,
-                          days: entries.length,
-                        ),
-                    ],
+                        if (entries.length >= 2)
+                          _Trend(
+                            delta: entries.last.kg - entries.first.kg,
+                            days: entries.length,
+                          ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              if (entries.length < 2)
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(
-                    'Log your weight on at least two days to see a trend line. '
-                    'Weighing at the same time of day — usually first thing in '
-                    'the morning — makes the line far less noisy.',
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodySmall,
+                const SizedBox(height: 20),
+                if (entries.length < 2)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      'Log your weight on at least two days to see a trend line. '
+                      'Weighing at the same time of day — usually first thing in '
+                      'the morning — makes the line far less noisy.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall,
+                    ),
+                  )
+                else
+                  SizedBox(height: 240, child: _WeightChart(entries: entries)),
+                const SizedBox(height: 24),
+                Text('History', style: theme.textTheme.titleMedium),
+                for (final e in entries.reversed)
+                  ListTile(
+                    title: Text('${e.kg.toStringAsFixed(1)} kg'),
+                    subtitle: Text(DateFormat('EEE, d MMM yyyy')
+                        .format(DateTime.parse(e.date))),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      onPressed: () async {
+                        await context
+                            .read<UserRepository>()
+                            .deleteWeight(e.date);
+                        if (!context.mounted) return;
+                        setState(() => _future = _load());
+                      },
+                    ),
                   ),
-                )
-              else
-                SizedBox(height: 240, child: _WeightChart(entries: entries)),
-              const SizedBox(height: 24),
-              Text('History', style: theme.textTheme.titleMedium),
-              for (final e in entries.reversed)
-                ListTile(
-                  title: Text('${e.kg.toStringAsFixed(1)} kg'),
-                  subtitle: Text(DateFormat('EEE, d MMM yyyy')
-                      .format(DateTime.parse(e.date))),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () async {
-                      await context.read<UserRepository>().deleteWeight(e.date);
-                      if (!context.mounted) return;
-                      setState(() => _future = _load());
-                    },
-                  ),
-                ),
-              const SizedBox(height: 80),
-            ],
-          );
-        },
+                const SizedBox(height: 80),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

@@ -58,7 +58,7 @@ values only matter for local runs and for the app.
 | Secret | Needed for | How to get it |
 | --- | --- | --- |
 | `FDC_API_KEY` | USDA import and micronutrient donors | Free, instant: <https://fdc.nal.usda.gov/api-key-signup.html> |
-| `IMAGES_TOKEN` | Pushing to the images repo | Fine-grained PAT with `contents: write` on `indian-food-images` |
+| `IMAGES_TOKEN` | Pushing to the images repo | Fine-grained PAT with **Contents: Read and write** on `indian-food-images` |
 | `KEYSTORE_BASE64` | Signed releases | `base64 -w0 upload-keystore.jks` |
 | `KEY_ALIAS`, `KEY_PASSWORD`, `STORE_PASSWORD` | Signed releases | From keystore creation |
 | `ADMOB_BANNER`, `ADMOB_INTERSTITIAL`, `ADMOB_REWARDED`, `ADMOB_NATIVE` | Live ads | AdMob console |
@@ -87,6 +87,27 @@ against 1,000/hour for an installation token, plus a secondary limit on bursts
 of uploads. The uploader reads `Retry-After` and `x-ratelimit-reset` and waits
 those windows out rather than failing the run — a slow publish is recoverable, a
 half-published image release is not.
+
+### When the upload 403s
+
+The releases API needs **Contents: Read and write**. Not Administration, and
+Read-only is not enough — creating a release and uploading an asset are both
+writes. In order of how often it is the answer:
+
+1. The fine-grained PAT has `Contents: Read-only`. Change it to Read and write.
+2. The token's **Repository access** does not actually list the images repo.
+3. The repository owner is an organisation and the token is still awaiting
+   owner approval, so it behaves as if it has nothing.
+4. The value in `IMAGES_TOKEN` is a `GITHUB_TOKEN`, which cannot reach any
+   repository other than the one its workflow runs in.
+
+The preflight step only proves the repo is *reachable*. It deliberately does
+not fail on the `permissions.push` field the API reports: GitHub has no
+supported way to introspect a fine-grained PAT's grants, that field predates
+them, and it can read `false` for a token that really does hold Contents:
+write. Blocking a correct run on an unreliable signal is worse than letting the
+first real write decide — which it does, within seconds, with the list above in
+the error.
 
 ---
 

@@ -10,7 +10,12 @@ import '../data/services/ads_service.dart';
 /// Unlocks are time-boxed and persisted, so closing the app does not cost the
 /// user a reward they already watched an ad for.
 class PremiumController extends ChangeNotifier {
-  PremiumController(this._users, this._ads);
+  PremiumController(this._users, this._ads) {
+    // Rewarded ads load in the background. Without this, every "Watch a short
+    // ad" button renders once against `rewardedReady == false` and stays stuck
+    // on "Preparing ad…" long after the ad is actually available.
+    _ads.rewardedAvailable.addListener(notifyListeners);
+  }
 
   final UserRepository _users;
   final AdsService _ads;
@@ -79,6 +84,7 @@ class PremiumController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _ads.rewardedAvailable.removeListener(notifyListeners);
     _expiryTimer?.cancel();
     super.dispose();
   }

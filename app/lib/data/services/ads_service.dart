@@ -63,7 +63,21 @@ class AdsService {
   static const interstitialCooldown = Duration(minutes: 4);
 
   bool get isReady => _initialised;
-  bool get rewardedReady => _rewarded != null;
+
+  /// Whether a rewarded ad is loaded and can be shown right now.
+  ///
+  /// This is a [Listenable] rather than a plain getter because loading happens
+  /// in the background: anything offering an unlock has to be told when the ad
+  /// arrives, or its button sits on "Preparing ad…" until some unrelated
+  /// rebuild happens to notice.
+  final ValueNotifier<bool> rewardedAvailable = ValueNotifier<bool>(false);
+
+  bool get rewardedReady => rewardedAvailable.value;
+
+  void _setRewarded(RewardedAd? ad) {
+    _rewarded = ad;
+    rewardedAvailable.value = ad != null;
+  }
 
   Future<void> initialise() async {
     if (_initialised) return;
@@ -71,8 +85,11 @@ class AdsService {
       await MobileAds.instance.initialize();
       await MobileAds.instance.updateRequestConfiguration(
         RequestConfiguration(
-          tagForChildDirectedTreatment:
-              TagForChildDirectedTreatment.unspecified,
+          // Replaces tagForChildDirectedTreatment, deprecated in
+          // google_mobile_ads 9. `unspecified` carries the same meaning: we
+          // make no age claim about the audience, so AdMob applies its
+          // default treatment.
+          ageRestrictedTreatment: AgeRestrictedTreatment.unspecified,
           maxAdContentRating: MaxAdContentRating.g,
         ),
       );
@@ -114,11 +131,11 @@ class AdsService {
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
-          _rewarded = ad;
+          _setRewarded(ad);
           _loadingRewarded = false;
         },
         onAdFailedToLoad: (error) {
-          _rewarded = null;
+          _setRewarded(null);
           _loadingRewarded = false;
           debugPrint('AdsService: rewarded load failed ${error.code}');
         },
@@ -135,7 +152,7 @@ class AdsService {
       await preloadRewarded();
       return false;
     }
-    _rewarded = null;
+    _setRewarded(null);
     final completer = Completer<bool>();
     var earned = false;
     ad.fullScreenContentCallback = FullScreenContentCallback(
@@ -197,7 +214,8 @@ class AdsService {
   void dispose() {
     _rewarded?.dispose();
     _interstitial?.dispose();
-    _rewarded = null;
+    _setRewarded(null);
     _interstitial = null;
+    rewardedAvailable.dispose();
   }
 }

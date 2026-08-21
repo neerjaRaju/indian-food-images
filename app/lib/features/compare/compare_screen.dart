@@ -40,6 +40,7 @@ class _CompareScreenState extends State<CompareScreen> {
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
+      useSafeArea: true,
       builder: (_) => _FoodPickerSheet(repo: repo),
     );
     if (food == null) return;
@@ -58,16 +59,23 @@ class _CompareScreenState extends State<CompareScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Compare foods')),
-      body: PremiumGate(
-        feature: PremiumFeature.compareFoods,
-        description: 'Put two dishes side by side across all 17 nutrients and '
-            'see which one actually fits your day.',
-        child: _CompareBody(
-          left: _left,
-          right: _right,
-          per100: _per100,
-          onPick: _pick,
-          onTogglePer100: (v) => setState(() => _per100 = v),
+      body: SafeArea(
+        // Edge-to-edge: this screen is pushed full-screen, so
+        // nothing else keeps its last row clear of the gesture
+        // bar. The app bar already owns the top inset.
+        top: false,
+        child: PremiumGate(
+          feature: PremiumFeature.compareFoods,
+          description:
+              'Put two dishes side by side across all 17 nutrients and '
+              'see which one actually fits your day.',
+          child: _CompareBody(
+            left: _left,
+            right: _right,
+            per100: _per100,
+            onPick: _pick,
+            onTogglePer100: (v) => setState(() => _per100 = v),
+          ),
         ),
       ),
     );
