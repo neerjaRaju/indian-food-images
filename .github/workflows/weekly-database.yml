@@ -79,10 +79,39 @@ jobs:
         working-directory: builder
         run: python -m ifca crawl --off-limit 6000
 
+      # GITHUB_TOKEN is an App installation token: scoped to THIS repository
+      # and capped at 1,000 requests/hour against it. It cannot create or
+      # upload releases in the separate images repository at all — those
+      # calls come back 403 "rate limit exceeded for installation", which
+      # reads like throttling but is really "no access". Publishing needs a
+      # PAT in IMAGES_TOKEN with `contents: write` on the images repo.
+      - name: Check the images token before doing any work
+        if: ${{ inputs.skip_images != true && inputs.dry_run != true }}
+        env:
+          IMAGES_TOKEN: ${{ secrets.IMAGES_TOKEN }}
+        run: |
+          REPO="${IFCA_IMAGE_OWNER}/${IFCA_IMAGE_REPO}"
+          if [ -z "$IMAGES_TOKEN" ]; then
+            echo "::error::IMAGES_TOKEN is not set. Publishing images to ${REPO} needs a personal access token with contents:write on that repository; GITHUB_TOKEN is scoped to this repository only."
+            exit 1
+          fi
+          code=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $IMAGES_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}")
+          if [ "$code" != "200" ]; then
+            echo "::error::IMAGES_TOKEN cannot read ${REPO} (HTTP ${code}). A 404 here means the token has no access at all, not that the repository is missing."
+            exit 1
+          fi
+          echo "IMAGES_TOKEN can reach ${REPO}."
+
       - name: Crawl, optimise and publish images
         if: ${{ inputs.skip_images != true }}
         working-directory: builder
         env:
+          # Separate names on purpose: the uploader talks to the images
+          # repo, anything else in the job keeps the workflow's own token.
+          IFCA_IMAGE_TOKEN: ${{ secrets.IMAGES_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.IMAGES_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
           python -m ifca images \
@@ -151,18 +180,40 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           TAG="db-${{ steps.summary.outputs.release_date }}"
-          gh release create "$TAG" \
-            --title "Food database ${{ steps.summary.outputs.release_date }}" \
-            --notes-file builder/build/dist/RELEASE_NOTES.md \
-            --latest \
-            app/assets/db/indian_food.db.gz \
-            builder/build/dist/metadata.json \
-            builder/build/dist/image_manifest.json \
-          || gh release upload "$TAG" --clobber \
-            app/assets/db/indian_food.db.gz \
-            builder/build/dist/metadata.json \
+          ASSETS=(
+            app/assets/db/indian_food.db.gz
+            builder/build/dist/metadata.json
             builder/build/dist/image_manifest.json
+          )
+
+          # Create-or-update, with a couple of retries: a release published
+          # at the tail of a long job can land on a spent rate-limit window,
+          # and losing a six-hour build to a 403 is not acceptable.
+          publish() {
+            if gh release view "$TAG" >/dev/null 2>&1; then
+              gh release upload "$TAG" --clobber "${ASSETS[@]}"
+            else
+              gh release create "$TAG" \
+                --title "Food database ${{ steps.summary.outputs.release_date }}" \
+                --notes-file builder/build/dist/RELEASE_NOTES.md \
+                --latest \
+                "${ASSETS[@]}"
+            fi
+          }
+
+          for attempt in 1 2 3; do
+            if publish; then
+              echo "Published $TAG"
+              exit 0
+            fi
+            echo "::warning::Publish attempt $attempt failed; retrying in $((attempt * 60))s"
+            sleep $((attempt * 60))
+          done
+
+          echo "::error::Could not publish release $TAG"
+          exit 1
 
       - name: Job summary
         if: always()
@@ -191,10 +242,28 @@ jobs:
           python-version: "3.12"
       - working-directory: builder
         run: pip install -r requirements.txt
+      # Unpack at the workspace root, NOT into builder/build/dist.
+      #
+      # The build job uploads paths under both builder/ and app/, so
+      # upload-artifact uses their least common ancestor — the workspace root
+      # — as the artifact root. Every entry therefore already carries its
+      # full builder/build/dist/... prefix. Extracting that into
+      # builder/build/dist produced builder/build/dist/builder/build/dist/,
+      # and `ifca verify` looked in the right place and found nothing:
+      # "No manifest — run `ifca images` first."
       - uses: actions/download-artifact@v4
         with:
           name: database-${{ needs.build.outputs.release_date }}
-          path: builder/build/dist
+          path: .
+      - name: Check the artifact landed where ifca expects it
+        run: |
+          if [ ! -f builder/build/dist/image_manifest.json ]; then
+            echo "::error::image_manifest.json is not at \
+          builder/build/dist/ after download. Artifact contents:"
+            find . -name 'image_manifest.json' -o -name 'metadata.json' | head
+            exit 1
+          fi
+          echo "Manifest present: $(wc -c < builder/build/dist/image_manifest.json) bytes"
       - name: HEAD every published URL
         working-directory: builder
         # jsDelivr needs a few minutes to pick up a fresh release.
