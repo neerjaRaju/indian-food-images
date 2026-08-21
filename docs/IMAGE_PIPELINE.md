@@ -117,7 +117,9 @@ distribution unlawful, not merely impolite.
 python -m ifca images --image-limit 20
 
 # full run, publish, verify
-export GITHUB_TOKEN=ghp_...
+# IFCA_IMAGE_TOKEN must be a PAT with contents:write on the images repo.
+# A workflow's GITHUB_TOKEN cannot reach a repository other than its own.
+export IFCA_IMAGE_TOKEN=ghp_...
 export IFCA_IMAGE_OWNER=my-org IFCA_IMAGE_REPO=indian-food-images
 python -m ifca images --upload --verify-urls
 
@@ -127,3 +129,26 @@ python -m ifca verify --strict
 
 `build/images/` is cached in CI, so weekly runs only process foods that do not
 already have a rendition.
+
+## Staying inside GitHub's rate limits
+
+Publishing thousands of renditions is limited by request count, not bandwidth,
+so the uploader is built around spending as few requests as it can:
+
+- **Shard discovery costs one request per 30 releases.** The list-releases
+  response already embeds each release's assets, so choosing a shard and
+  learning which files it already holds needs no follow-up call. (An earlier
+  version paged every shard's assets separately — ten requests per shard before
+  a single upload, which on its own could exhaust an installation token.)
+- **Unchanged files cost nothing.** Name plus byte size decide; a matching pair
+  is skipped without touching the network.
+- **Rate limits are waited out, not failed on.** A 403 or 429 carrying
+  `Retry-After`, `x-ratelimit-remaining: 0`, or a secondary-limit message is
+  slept off and retried up to five times. The uploader also pauses when fewer
+  than 25 requests remain in the window rather than running into the wall
+  mid-shard.
+- **A genuine permission failure stops the run immediately.** A 403 with none of
+  those markers means the token may not write here; the run aborts with the fix
+  in the message instead of issuing thousands of doomed uploads. `ifca images`
+  then exits non-zero, so the database is never built against image URLs that
+  were never published.

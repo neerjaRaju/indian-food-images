@@ -42,8 +42,11 @@ when the current release reaches the configured asset limit.
 
 from __future__ import annotations
 
+import contextlib
 import os
+import random
 import subprocess
+import time
 from collections.abc import Iterable
 from pathlib import Path
 from urllib.parse import quote
@@ -53,7 +56,6 @@ import requests
 from ..config import IMAGE_OUT_DIR, RENDITIONS, HostingConfig
 from ..models import ImageAsset
 from ..util import log
-
 
 _log = log.get("ifca.imaging.uploader")
 
@@ -68,6 +70,41 @@ DEFAULT_RELEASE_PREFIX = "images-latest"
 
 # Maximum number of retries for transient GitHub failures.
 MAX_UPLOAD_RETRIES = 3
+
+# ---------------------------------------------------------------------- #
+# Rate limiting
+#
+# GitHub's limits are the binding constraint on this pipeline, not
+# bandwidth. The numbers that matter:
+#
+#     GITHUB_TOKEN (a GitHub App installation token)
+#         1,000 requests/hour *per repository*, and no access at all to a
+#         repository outside the workflow's own. Publishing images to a
+#         separate images repo therefore needs a PAT, not GITHUB_TOKEN.
+#
+#     Personal access token
+#         5,000 requests/hour, plus an undocumented "secondary" limit on
+#         bursts of content-creating requests.
+#
+# Both are reported the same way: HTTP 403 (sometimes 429) with either a
+# Retry-After header or x-ratelimit-remaining: 0 plus x-ratelimit-reset.
+# We wait those out rather than failing the run, because a half-published
+# image release is worse than a slow one.
+# ---------------------------------------------------------------------- #
+
+# Never sleep longer than this for one rate-limit response.
+RATE_LIMIT_MAX_WAIT = 15 * 60
+
+# How many times one request may be re-sent after a rate-limit response.
+MAX_RATE_LIMIT_RETRIES = 5
+
+# Sleep when fewer than this many requests remain in the window, so a burst
+# of uploads does not slam into the wall mid-shard.
+RATE_LIMIT_FLOOR = 25
+
+
+class GitHubPermissionError(RuntimeError):
+    """Raised when the token cannot act on the images repository at all."""
 
 
 class GitHubReleaseUploader:
@@ -161,6 +198,19 @@ class GitHubReleaseUploader:
 
         self._shards: dict[str, dict[str, int]] = {}
 
+        # One connection pool for every call to GitHub.
+        self._session = requests.Session()
+
+        # Set once the token is proven unable to write here. Every
+        # subsequent call short-circuits instead of burning more quota.
+        self._fatal: str | None = None
+
+        # Requests issued, for the end-of-run summary.
+        self._api_calls = 0
+
+        # Seconds spent parked on rate limits.
+        self._rate_limited_seconds = 0.0
+
     # ================================================================== #
     # HTTP
     # ================================================================== #
@@ -178,6 +228,300 @@ class GitHubReleaseUploader:
             f"{GITHUB_API}/repos/"
             f"{self.owner}/{self.repo}/releases"
         )
+
+    # ------------------------------------------------------------------ #
+    # Rate-limit interpretation
+    # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _is_rate_limited(
+        response: requests.Response,
+    ) -> bool:
+        """
+        Distinguish "you are going too fast" from "you may not do this".
+
+        Both arrive as HTTP 403, and treating the first as the second is
+        exactly how a run ends up dying two thirds of the way through a
+        shard.
+        """
+
+        if response.status_code not in (403, 429):
+            return False
+
+        if response.headers.get("x-ratelimit-remaining") == "0":
+            return True
+
+        if response.headers.get("retry-after"):
+            return True
+
+        body = response.text[:1000].lower()
+
+        return (
+            "rate limit" in body
+            or "secondary rate" in body
+            or "abuse detection" in body
+        )
+
+    @staticmethod
+    def _retry_delay(
+        response: requests.Response,
+    ) -> float:
+        """
+        How long to wait before re-sending a rate-limited request.
+
+        Retry-After wins when present; otherwise x-ratelimit-reset gives
+        the wall-clock second the window rolls over.
+        """
+
+        retry_after = response.headers.get("retry-after")
+
+        if retry_after:
+            try:
+                wait = float(retry_after)
+            except ValueError:
+                wait = 60.0
+        else:
+            wait = 60.0
+
+            reset = response.headers.get("x-ratelimit-reset")
+
+            if reset:
+                with contextlib.suppress(ValueError):
+                    wait = float(reset) - time.time()
+
+        # A little padding, a little jitter: several jobs may be waiting
+        # on the same reset and should not all resume in the same second.
+        wait = wait + 2.0 + random.uniform(0, 3)
+
+        return max(1.0, min(wait, RATE_LIMIT_MAX_WAIT))
+
+    def _respect_remaining_budget(
+        self,
+        response: requests.Response,
+    ) -> None:
+        """
+        Pause *before* hitting zero when the window is nearly spent.
+        """
+
+        remaining = response.headers.get("x-ratelimit-remaining")
+        reset = response.headers.get("x-ratelimit-reset")
+
+        if not remaining or not reset:
+            return
+
+        try:
+            left = int(remaining)
+            resets_at = float(reset)
+        except ValueError:
+            return
+
+        if left > RATE_LIMIT_FLOOR:
+            return
+
+        wait = min(
+            max(resets_at - time.time() + 2.0, 1.0),
+            RATE_LIMIT_MAX_WAIT,
+        )
+
+        _log.warning(
+            "Only %d GitHub requests left in this window; "
+            "sleeping %.0fs for the reset",
+            left,
+            wait,
+        )
+
+        self._rate_limited_seconds += wait
+
+        time.sleep(wait)
+
+    # ------------------------------------------------------------------ #
+    # The one place a GitHub request is made
+    # ------------------------------------------------------------------ #
+
+    def _api(
+        self,
+        method: str,
+        url: str,
+        **kwargs: object,
+    ) -> requests.Response | None:
+        """
+        Issue one GitHub request, waiting out rate limits.
+
+        Returns None when the request could not be completed at all
+        (network failure, or the limit outlasted our patience). A returned
+        response may still carry an error status — callers interpret it.
+
+        Raises GitHubPermissionError when the token is not allowed to act
+        on this repository, because retrying that is pointless and the
+        rest of the run should stop immediately.
+        """
+
+        if self._fatal:
+            raise GitHubPermissionError(self._fatal)
+
+        kwargs.setdefault("timeout", 30)
+
+        headers = {
+            **self._headers(),
+            **(kwargs.pop("headers", None) or {}),  # type: ignore[dict-item]
+        }
+
+        response: requests.Response | None = None
+
+        for attempt in range(1, MAX_RATE_LIMIT_RETRIES + 1):
+
+            try:
+                self._api_calls += 1
+
+                response = self._session.request(
+                    method,
+                    url,
+                    headers=headers,
+                    **kwargs,  # type: ignore[arg-type]
+                )
+
+            except requests.RequestException as exc:
+                _log.warning(
+                    "%s %s failed: %s",
+                    method,
+                    url,
+                    exc,
+                )
+                return None
+
+            if not self._is_rate_limited(response):
+
+                if response.status_code in (401, 403):
+                    self._note_permission_failure(response)
+
+                self._respect_remaining_budget(response)
+
+                return response
+
+            if attempt == MAX_RATE_LIMIT_RETRIES:
+                break
+
+            wait = self._retry_delay(response)
+
+            _log.warning(
+                "GitHub rate limit on %s %s — waiting %.0fs "
+                "(attempt %d/%d)",
+                method,
+                url,
+                wait,
+                attempt,
+                MAX_RATE_LIMIT_RETRIES,
+            )
+
+            self._rate_limited_seconds += wait
+
+            time.sleep(wait)
+
+        _log.error(
+            "Gave up on %s %s after %d rate-limited attempts",
+            method,
+            url,
+            MAX_RATE_LIMIT_RETRIES,
+        )
+
+        return response
+
+    def _note_permission_failure(
+        self,
+        response: requests.Response,
+    ) -> None:
+        """
+        Turn a genuine 401/403 into a single, readable, fatal message.
+        """
+
+        hint = (
+            f"{response.status_code} from GitHub for "
+            f"{self.owner}/{self.repo}. "
+        )
+
+        if not self.token:
+            hint += "No token was supplied."
+        else:
+            hint += (
+                "The token cannot write releases in this repository. "
+                "GITHUB_TOKEN is scoped to the workflow's own repository "
+                "and cannot publish to a separate images repository — set "
+                "the IMAGES_TOKEN secret to a PAT with `contents: write` "
+                "on "
+                f"{self.owner}/{self.repo}."
+            )
+
+        self._fatal = hint
+
+        _log.error("%s", hint)
+
+    # ------------------------------------------------------------------ #
+    # Preflight
+    # ------------------------------------------------------------------ #
+
+    def preflight(self) -> bool:
+        """
+        Prove, in one request, that we can reach the images repository.
+
+        Cheap insurance: without it the first sign of a bad token is a
+        wall of failures several thousand uploads deep.
+        """
+
+        if self.dry_run:
+            return True
+
+        try:
+            response = self._api(
+                "GET",
+                f"{GITHUB_API}/repos/{self.owner}/{self.repo}",
+            )
+        except GitHubPermissionError:
+            return False
+
+        if response is None:
+            _log.error(
+                "Could not reach %s/%s",
+                self.owner,
+                self.repo,
+            )
+            return False
+
+        if response.status_code == 404:
+            self._fatal = (
+                f"{self.owner}/{self.repo} does not exist, or the token "
+                "cannot see it. A GitHub App installation token returns "
+                "404 for repositories it was not installed on."
+            )
+            _log.error("%s", self._fatal)
+            return False
+
+        if response.status_code != 200:
+            _log.error(
+                "Preflight on %s/%s failed: HTTP %s %s",
+                self.owner,
+                self.repo,
+                response.status_code,
+                response.text[:500],
+            )
+            return False
+
+        permissions = response.json().get("permissions") or {}
+
+        if permissions and not permissions.get("push", False):
+            self._fatal = (
+                f"The token can read {self.owner}/{self.repo} but not "
+                "write to it; release uploads need `contents: write`."
+            )
+            _log.error("%s", self._fatal)
+            return False
+
+        _log.info(
+            "Preflight OK: %s/%s is writable",
+            self.owner,
+            self.repo,
+        )
+
+        return True
 
     # ================================================================== #
     # Release naming
@@ -200,15 +544,27 @@ class GitHubReleaseUploader:
     # Discover existing releases
     # ================================================================== #
 
-    def _discover_shards(self) -> list[tuple[int, str, int]]:
+    def _discover_shards(self) -> list[dict]:
         """
         Discover all existing releases matching our prefix.
 
-        Returns:
+        The list-releases response already embeds each release's assets,
+        so this is the only place we need to ask. The previous version
+        called _load_release() on every shard just to count its assets —
+        ten paged requests per shard, before a single byte was uploaded,
+        which on its own could exhaust an installation token's hourly
+        budget.
+
+        Returns, ordered by shard number:
 
             [
-                (1, "images-latest-001", release_id),
-                (2, "images-latest-002", release_id),
+                {
+                    "number": 1,
+                    "tag": "images-latest-001",
+                    "id": 123,
+                    "sizes": {"medium_dosa.webp": 41231, ...},
+                    "asset_ids": {"medium_dosa.webp": 9988, ...},
+                },
             ]
         """
 
@@ -220,23 +576,18 @@ class GitHubReleaseUploader:
         page = 1
 
         while True:
-            url = self._release_url
+            response = self._api(
+                "GET",
+                self._release_url,
+                params={
+                    # Each release object carries its whole asset array,
+                    # so a large per_page makes for a very large body.
+                    "per_page": 30,
+                    "page": page,
+                },
+            )
 
-            try:
-                response = requests.get(
-                    url,
-                    headers=self._headers(),
-                    params={
-                        "per_page": 100,
-                        "page": page,
-                    },
-                    timeout=30,
-                )
-            except requests.RequestException as exc:
-                _log.warning(
-                    "Failed to discover GitHub releases: %s",
-                    exc,
-                )
+            if response is None:
                 break
 
             if response.status_code != 200:
@@ -255,12 +606,12 @@ class GitHubReleaseUploader:
 
             releases.extend(batch)
 
-            if len(batch) < 100:
+            if len(batch) < 30:
                 break
 
             page += 1
 
-        discovered: list[tuple[int, str, int]] = []
+        discovered: list[dict] = []
 
         prefix = f"{self.release_prefix}-"
 
@@ -279,31 +630,94 @@ class GitHubReleaseUploader:
             if not suffix.isdigit():
                 continue
 
-            number = int(suffix)
-
             if not isinstance(release_id, int):
                 continue
 
-            discovered.append(
-                (
-                    number,
-                    tag,
-                    release_id,
-                )
+            sizes, asset_ids = self._index_assets(
+                release.get("assets")
             )
 
-        discovered.sort(key=lambda item: item[0])
+            discovered.append(
+                {
+                    "number": int(suffix),
+                    "tag": tag,
+                    "id": release_id,
+                    "sizes": sizes,
+                    "asset_ids": asset_ids,
+                }
+            )
+
+        discovered.sort(key=lambda item: item["number"])
 
         _log.info(
-            "Discovered %d image release shards",
+            "Discovered %d image release shards in %d request(s)",
             len(discovered),
+            page,
         )
 
         return discovered
 
+    @staticmethod
+    def _index_assets(
+        assets: object,
+    ) -> tuple[dict[str, int], dict[str, int]]:
+        """
+        Turn an asset array into name->size and name->id maps.
+        """
+
+        sizes: dict[str, int] = {}
+        asset_ids: dict[str, int] = {}
+
+        if not isinstance(assets, list):
+            return sizes, asset_ids
+
+        for asset in assets:
+            if not isinstance(asset, dict):
+                continue
+
+            name = asset.get("name")
+            size = asset.get("size")
+            asset_id = asset.get("id")
+
+            if not isinstance(name, str):
+                continue
+
+            if isinstance(size, int):
+                sizes[name] = size
+
+            if isinstance(asset_id, int):
+                asset_ids[name] = asset_id
+
+        return sizes, asset_ids
+
     # ================================================================== #
     # Load a release
     # ================================================================== #
+
+    def _adopt_shard(
+        self,
+        shard: dict,
+    ) -> None:
+        """
+        Make a shard discovered by _discover_shards() the current one.
+
+        No network traffic: the asset maps came back with the release.
+        """
+
+        self._release_id = shard["id"]
+        self._release_tag = shard["tag"]
+
+        self._existing = dict(shard["sizes"])
+        self._asset_ids = dict(shard["asset_ids"])
+
+        self._asset_count = len(self._asset_ids)
+
+        _log.info(
+            "Using release shard %s (%d/%d assets)",
+            self._release_tag,
+            self._asset_count,
+            self.max_assets_per_release,
+        )
 
     def _load_release(
         self,
@@ -311,9 +725,10 @@ class GitHubReleaseUploader:
         release_id: int,
     ) -> None:
         """
-        Load one release and all of its assets.
+        Re-read one release and all of its assets from GitHub.
 
-        This resets the current shard cache.
+        Only used to recover from a 422 collision, where the local cache
+        is known to be stale. The happy path never calls this.
         """
 
         self._release_id = release_id
@@ -325,27 +740,16 @@ class GitHubReleaseUploader:
         page = 1
 
         while True:
-            url = (
-                f"{self._release_url}/"
-                f"{release_id}/assets"
+            response = self._api(
+                "GET",
+                f"{self._release_url}/{release_id}/assets",
+                params={
+                    "per_page": 100,
+                    "page": page,
+                },
             )
 
-            try:
-                response = requests.get(
-                    url,
-                    headers=self._headers(),
-                    params={
-                        "per_page": 100,
-                        "page": page,
-                    },
-                    timeout=30,
-                )
-            except requests.RequestException as exc:
-                _log.warning(
-                    "Failed loading assets for %s: %s",
-                    tag,
-                    exc,
-                )
+            if response is None:
                 break
 
             if response.status_code != 200:
@@ -363,19 +767,10 @@ class GitHubReleaseUploader:
             if not isinstance(assets, list) or not assets:
                 break
 
-            for asset in assets:
-                name = asset.get("name")
-                size = asset.get("size")
-                asset_id = asset.get("id")
+            sizes, asset_ids = self._index_assets(assets)
 
-                if not isinstance(name, str):
-                    continue
-
-                if isinstance(size, int):
-                    self._existing[name] = size
-
-                if isinstance(asset_id, int):
-                    self._asset_ids[name] = asset_id
+            self._existing.update(sizes)
+            self._asset_ids.update(asset_ids)
 
             if len(assets) < 100:
                 break
@@ -385,7 +780,7 @@ class GitHubReleaseUploader:
         self._asset_count = len(self._asset_ids)
 
         _log.info(
-            "Loaded release %s: %d assets",
+            "Reloaded release %s: %d assets",
             tag,
             self._asset_count,
         )
@@ -416,29 +811,27 @@ class GitHubReleaseUploader:
             tag,
         )
 
-        try:
-            response = requests.post(
-                self._release_url,
-                headers=self._headers(),
-                timeout=30,
-                json={
-                    "tag_name": tag,
-                    "name": f"Food images {tag}",
-                    "body": (
-                        "Automated food image release shard.\n\n"
-                        f"Shard: {number:03d}\n"
-                        f"Maximum assets: "
-                        f"{self.max_assets_per_release}"
-                    ),
-                    "draft": False,
-                    "prerelease": False,
-                },
-            )
-        except requests.RequestException as exc:
+        response = self._api(
+            "POST",
+            self._release_url,
+            json={
+                "tag_name": tag,
+                "name": f"Food images {tag}",
+                "body": (
+                    "Automated food image release shard.\n\n"
+                    f"Shard: {number:03d}\n"
+                    f"Maximum assets: "
+                    f"{self.max_assets_per_release}"
+                ),
+                "draft": False,
+                "prerelease": False,
+            },
+        )
+
+        if response is None:
             _log.error(
-                "Failed creating release %s: %s",
+                "Failed creating release %s: no response",
                 tag,
-                exc,
             )
             return None
 
@@ -457,23 +850,18 @@ class GitHubReleaseUploader:
                 tag,
             )
 
-            try:
-                lookup = requests.get(
-                    f"{self._release_url}/tags/"
-                    f"{quote(tag, safe='')}",
-                    headers=self._headers(),
-                    timeout=30,
-                )
+            lookup = self._api(
+                "GET",
+                f"{self._release_url}/tags/"
+                f"{quote(tag, safe='')}",
+            )
 
-                if lookup.status_code == 200:
-                    data = lookup.json()
-                    release_id = data.get("id")
+            if lookup is not None and lookup.status_code == 200:
+                data = lookup.json()
+                release_id = data.get("id")
 
-                    if isinstance(release_id, int):
-                        return tag, release_id
-
-            except requests.RequestException:
-                pass
+                if isinstance(release_id, int):
+                    return tag, release_id
 
         _log.error(
             "Failed creating release %s: HTTP %s %s",
@@ -501,24 +889,13 @@ class GitHubReleaseUploader:
         discovered = self._discover_shards()
 
         # -------------------------------------------------------------- #
-        # Prefer existing shards with capacity.
+        # Prefer existing shards with capacity. The asset counts came back
+        # with the release list, so choosing a shard costs nothing extra.
         # -------------------------------------------------------------- #
 
-        for number, tag, release_id in discovered:
-            self._load_release(
-                tag,
-                release_id,
-            )
-
-            if self._asset_count < self.max_assets_per_release:
-                _log.info(
-                    "Using release shard %s "
-                    "(%d/%d assets)",
-                    tag,
-                    self._asset_count,
-                    self.max_assets_per_release,
-                )
-
+        for shard in discovered:
+            if len(shard["asset_ids"]) < self.max_assets_per_release:
+                self._adopt_shard(shard)
                 return True
 
         # -------------------------------------------------------------- #
@@ -530,8 +907,8 @@ class GitHubReleaseUploader:
 
         if discovered:
             next_number = max(
-                item[0]
-                for item in discovered
+                shard["number"]
+                for shard in discovered
             ) + 1
 
         created = self._create_release(
@@ -543,9 +920,13 @@ class GitHubReleaseUploader:
 
         tag, release_id = created
 
-        self._load_release(
-            tag,
-            release_id,
+        self._adopt_shard(
+            {
+                "id": release_id,
+                "tag": tag,
+                "sizes": {},
+                "asset_ids": {},
+            }
         )
 
         return True
@@ -597,15 +978,9 @@ class GitHubReleaseUploader:
         asset_id = self._asset_ids.get(name)
 
         if asset_id is None:
-            # Refresh in case the local cache is stale.
-            self._load_release(
-                self._release_tag or "",
-                self._release_id,
-            )
-
-            asset_id = self._asset_ids.get(name)
-
-        if asset_id is None:
+            # Sizes and ids are always cached together, so a missing id
+            # means the asset is not there. The old code re-paged the
+            # whole release here — up to ten requests to learn nothing.
             self._existing.pop(name, None)
             return True
 
@@ -615,17 +990,12 @@ class GitHubReleaseUploader:
             f"/releases/assets/{asset_id}"
         )
 
-        try:
-            response = requests.delete(
-                url,
-                headers=self._headers(),
-                timeout=30,
-            )
-        except requests.RequestException as exc:
+        response = self._api("DELETE", url)
+
+        if response is None:
             _log.warning(
-                "Delete failed for %s: %s",
+                "Delete failed for %s: no response",
                 name,
-                exc,
             )
             return False
 
@@ -663,9 +1033,13 @@ class GitHubReleaseUploader:
         self,
         path: Path,
         name: str,
-    ) -> requests.Response:
+    ) -> requests.Response | None:
         """
         Upload one file to the current release.
+
+        The body is read into memory rather than streamed from a file
+        handle: a rate-limited request gets re-sent, and a consumed handle
+        would replay as an empty body.
         """
 
         if self._release_id is None:
@@ -685,18 +1059,13 @@ class GitHubReleaseUploader:
             f"/assets?name={encoded_name}"
         )
 
-        headers = {
-            **self._headers(),
-            "Content-Type": "image/webp",
-        }
-
-        with path.open("rb") as fh:
-            return requests.post(
-                url,
-                headers=headers,
-                data=fh,
-                timeout=180,
-            )
+        return self._api(
+            "POST",
+            url,
+            headers={"Content-Type": "image/webp"},
+            data=path.read_bytes(),
+            timeout=180,
+        )
 
     # ================================================================== #
 
@@ -811,20 +1180,18 @@ class GitHubReleaseUploader:
 
         for attempt in range(1, MAX_UPLOAD_RETRIES + 1):
 
-            try:
-                response = self._upload_request(
-                    path,
-                    name,
-                )
+            response = self._upload_request(
+                path,
+                name,
+            )
 
-            except requests.RequestException as exc:
+            if response is None:
                 _log.warning(
-                    "Upload network error for %s "
-                    "(attempt %d/%d): %s",
+                    "Upload failed for %s with no response "
+                    "(attempt %d/%d)",
                     name,
                     attempt,
                     MAX_UPLOAD_RETRIES,
-                    exc,
                 )
 
                 continue
@@ -924,10 +1291,16 @@ class GitHubReleaseUploader:
             # Authentication
             # ---------------------------------------------------------- #
 
+            # _api() has already waited out any rate limiting and, for a
+            # genuine permission failure, recorded a fatal reason. Either
+            # way there is nothing to gain by trying this file again.
             if response.status_code in (401, 403):
+                if self._fatal:
+                    raise GitHubPermissionError(self._fatal)
+
                 _log.error(
-                    "GitHub authentication/permission error "
-                    "for %s: HTTP %s %s",
+                    "GitHub rejected %s after exhausting rate-limit "
+                    "retries: HTTP %s %s",
                     name,
                     response.status_code,
                     response.text[:1000],
@@ -998,6 +1371,8 @@ class GitHubReleaseUploader:
             "missing": 0,
             "failed": 0,
             "releases_used": 0,
+            "aborted": 0,
+            "api_calls": 0,
         }
 
         # Materialize the iterable once.
@@ -1009,6 +1384,18 @@ class GitHubReleaseUploader:
         )
 
         if not self.dry_run:
+            # One request that answers "can this token publish here?"
+            # before we spend an hour finding out the hard way.
+            if not self.preflight():
+                stats["aborted"] = 1
+                stats["failed"] = len(asset_list) * len(RENDITIONS)
+                stats["api_calls"] = self._api_calls
+                _log.error(
+                    "Aborting image upload: %s",
+                    self._fatal or "images repository is not reachable",
+                )
+                return stats
+
             # Discover shards before uploading.
             self._select_shard()
 
@@ -1074,10 +1461,21 @@ class GitHubReleaseUploader:
                 # Upload.
                 # ------------------------------------------------------ #
 
-                success = self.upload_file(
-                    path,
-                    name,
-                )
+                try:
+                    success = self.upload_file(
+                        path,
+                        name,
+                    )
+                except GitHubPermissionError as exc:
+                    # Nothing that follows can succeed either. Stop here
+                    # rather than issuing thousands of doomed requests.
+                    stats["aborted"] = 1
+                    _log.error(
+                        "Stopping image upload after %d uploads: %s",
+                        stats["uploaded"],
+                        exc,
+                    )
+                    break
 
                 if success:
 
@@ -1099,9 +1497,14 @@ class GitHubReleaseUploader:
                     #
                     stats["failed"] += 1
 
+            if stats["aborted"]:
+                break
+
         stats["releases_used"] = len(
             used_release_tags
         )
+
+        stats["api_calls"] = self._api_calls
 
         _log.info(
             "=================================================="
@@ -1135,6 +1538,23 @@ class GitHubReleaseUploader:
             "Releases : %d",
             stats["releases_used"],
         )
+
+        _log.info(
+            "API calls: %d",
+            stats["api_calls"],
+        )
+
+        if self._rate_limited_seconds:
+            _log.info(
+                "Rate-limit wait: %.0fs",
+                self._rate_limited_seconds,
+            )
+
+        if stats["aborted"]:
+            _log.error(
+                "Run aborted before completion: %s",
+                self._fatal or "unknown reason",
+            )
 
         _log.info(
             "=================================================="

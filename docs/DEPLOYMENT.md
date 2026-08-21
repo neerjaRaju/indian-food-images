@@ -66,9 +66,27 @@ values only matter for local runs and for the app.
 **Repository variable:** `IMAGES_REPO` if your image repo is not named
 `indian-food-images`.
 
-Every secret is optional. Without `FDC_API_KEY` the USDA source logs a warning
-and yields nothing; without `IMAGES_TOKEN` the uploader runs in dry-run; without
+Without `FDC_API_KEY` the USDA source logs a warning and yields nothing; without
 the keystore the release build signs with debug keys.
+
+`IMAGES_TOKEN` is the one that is **not** optional for a publishing run.
+`GITHUB_TOKEN` is a GitHub App installation token: it is scoped to the
+repository the workflow runs in, and it has no access to the separate images
+repository at all. Calls to it come back as
+
+```
+HTTP 403: API rate limit exceeded for installation
+```
+
+which reads like throttling but means "not installed here". The weekly workflow
+now checks `IMAGES_TOKEN` in one request before crawling anything, so a missing
+or under-scoped token fails in ten seconds instead of five hours in.
+
+Even with the right token there is a budget: 5,000 requests/hour for a PAT
+against 1,000/hour for an installation token, plus a secondary limit on bursts
+of uploads. The uploader reads `Retry-After` and `x-ratelimit-reset` and waits
+those windows out rather than failing the run — a slow publish is recoverable, a
+half-published image release is not.
 
 ---
 

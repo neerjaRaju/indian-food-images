@@ -130,7 +130,21 @@ def stage_images(args: argparse.Namespace, records: list[FoodRecord] | None = No
         owner = os.environ.get("IFCA_IMAGE_OWNER", provider.get("owner", ""))
         repo = os.environ.get("IFCA_IMAGE_REPO", provider.get("repo", ""))
         tag = provider.get("tag", "images-latest")
-        GitHubReleaseUploader(owner, repo, tag, dry_run=args.dry_run).upload_assets(assets.values())
+        # IFCA_IMAGE_TOKEN wins so the images repo can use a PAT while the
+        # rest of the job keeps the workflow's own GITHUB_TOKEN.
+        token = os.environ.get("IFCA_IMAGE_TOKEN") or os.environ.get("GITHUB_TOKEN", "")
+        stats = GitHubReleaseUploader(
+            owner, repo, tag, token=token, dry_run=args.dry_run,
+        ).upload_assets(assets.values())
+        # A run that could not publish must not quietly go on to build a
+        # database full of URLs that will 404.
+        if stats.get("aborted"):
+            raise SystemExit(
+                "Image upload aborted before completion — see the error above. "
+                "Publishing to a separate images repository needs IMAGES_TOKEN "
+                "set to a PAT with `contents: write`; GITHUB_TOKEN cannot reach "
+                "another repository."
+            )
         if args.images_repo:
             GitRepoPublisher(Path(args.images_repo), dry_run=args.dry_run).publish()
 

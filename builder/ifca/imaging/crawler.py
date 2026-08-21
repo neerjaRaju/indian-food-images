@@ -4,7 +4,7 @@ Candidate order per food:
   1. an ``off_image::`` tag captured during the Open Food Facts import
   2. an ``wiki_image::`` tag captured during Wikipedia enrichment
   3. a Wikimedia Commons search on the food's name
-rajendra balodiya 
+
 Every candidate carries its licence and credit so the app can display
 attribution; candidates whose licence cannot be established are dropped.
 """
