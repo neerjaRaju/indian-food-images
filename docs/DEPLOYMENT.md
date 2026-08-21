@@ -137,7 +137,7 @@ violates AdMob policy and earns nothing.
 keytool -genkey -v -keystore upload-keystore.jks \
   -keyalg RSA -keysize 2048 -validity 10000 -alias upload
 
-cp app/android/key.properties.example app/android/key.properties
+cp app/android/key.properties app/android/key.properties
 # fill in the four values; the file is git-ignored
 ```
 
