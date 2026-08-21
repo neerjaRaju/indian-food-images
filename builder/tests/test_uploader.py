@@ -282,6 +282,27 @@ def test_selected_shard_carries_its_asset_sizes_without_extra_calls():
     assert u._asset_ids == {"medium_food0.webp": 5000, "medium_food1.webp": 5001}
 
 
+def test_new_shards_never_claim_the_latest_release():
+    """
+    An image shard must not become the repo's "latest release" — that is how
+    `gh release download` with no tag ends up fetching .webp files instead of
+    the database.
+    """
+    captured = {}
+
+    class Recording(FakeSession):
+        def request(self, method, url, **kwargs):
+            captured.update(kwargs.get("json") or {})
+            return super().request(method, url, **kwargs)
+
+    u = make_uploader([FakeResponse(201, payload={"id": 77})])
+    u._session = Recording([FakeResponse(201, payload={"id": 77})])
+
+    assert u._create_release(1) == ("images-latest-001", 77)
+    assert captured["make_latest"] == "false"
+    assert captured["prerelease"] is False
+
+
 def test_deleting_an_uncached_asset_makes_no_request():
     u = make_uploader([])
     u._release_id = 1

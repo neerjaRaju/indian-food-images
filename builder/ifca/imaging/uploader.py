@@ -846,6 +846,15 @@ class GitHubReleaseUploader:
                 ),
                 "draft": False,
                 "prerelease": False,
+                # These shards are asset buckets, not releases anyone reads.
+                # GitHub defaults make_latest to true, so without this the
+                # newest image shard becomes the repository's "latest
+                # release" — and `gh release download` with no tag, which is
+                # how release-app.yml fetches the database, would start
+                # pulling from a bucket of .webp files instead. Harmless
+                # while images live in their own repository; silently wrong
+                # the moment they share one with the database releases.
+                "make_latest": "false",
             },
         )
 
