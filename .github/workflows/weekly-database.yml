@@ -79,38 +79,19 @@ jobs:
         working-directory: builder
         run: python -m ifca crawl --off-limit 6000
 
-      # GITHUB_TOKEN is an App installation token: scoped to THIS repository
-      # and capped at 1,000 requests/hour against it. It cannot create or
-      # upload releases in the separate images repository at all — those
-      # calls come back 403 "rate limit exceeded for installation", which
-      # reads like throttling but is really "no access". Publishing needs a
-      # PAT in IMAGES_TOKEN with `contents: write` on the images repo.
-      - name: Check the images token before doing any work
-        if: ${{ inputs.skip_images != true && inputs.dry_run != true }}
-        env:
-          IMAGES_TOKEN: ${{ secrets.IMAGES_TOKEN }}
-        run: |
-          REPO="${IFCA_IMAGE_OWNER}/${IFCA_IMAGE_REPO}"
-          if [ -z "$IMAGES_TOKEN" ]; then
-            echo "::error::IMAGES_TOKEN is not set. Publishing images to ${REPO} needs a personal access token with contents:write on that repository; GITHUB_TOKEN is scoped to this repository only."
-            exit 1
-          fi
-          code=$(curl -sS -o /dev/null -w '%{http_code}' \
-            -H "Authorization: Bearer $IMAGES_TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/${REPO}")
-          if [ "$code" != "200" ]; then
-            echo "::error::IMAGES_TOKEN cannot read ${REPO} (HTTP ${code}). A 404 here means the token has no access at all, not that the repository is missing."
-            exit 1
-          fi
-          echo "IMAGES_TOKEN can reach ${REPO}."
-
       - name: Crawl, optimise and publish images
         if: ${{ inputs.skip_images != true }}
         working-directory: builder
         env:
-          # Separate names on purpose: the uploader talks to the images
-          # repo, anything else in the job keeps the workflow's own token.
+          # No token gate before this step: if the images repo is the one this
+          # workflow runs in, GITHUB_TOKEN already covers it. Set the
+          # IMAGES_TOKEN secret only for a cross-repository publish, where an
+          # installation token has no access at all.
+          #
+          # A wrong or missing permission is not silent — the uploader checks
+          # the repo is reachable, treats a real 403 as fatal, names the fix,
+          # and `ifca images` exits non-zero, so the database is never built
+          # against image URLs that were never published.
           IFCA_IMAGE_TOKEN: ${{ secrets.IMAGES_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.IMAGES_TOKEN || secrets.GITHUB_TOKEN }}
         run: |
