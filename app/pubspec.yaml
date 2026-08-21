@@ -46,7 +46,12 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  sqflite_common_ffi: ^2.3.3
+  # Floor is 2.4.0, not 2.3.3, on purpose. 2.3.x imports
+  # `package:sqlite3/open.dart`, which sqlite3 removed in 3.x, while still
+  # declaring `sqlite3: >=2.3.0 <4.0.0` — so pub is free to resolve a pair
+  # that cannot compile, and the FFI database tests fail to load with
+  # "No such file or directory: .../sqlite3-3.x/lib/open.dart".
+  sqflite_common_ffi: ^2.4.0
   integration_test:
     sdk: flutter
 
